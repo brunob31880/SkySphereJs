@@ -1,70 +1,67 @@
-# Getting Started with Create React App
+# Projet SkySphereJS
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Sky Simulator est une application permettant de visualiser le ciel étoilé en fonction de la position de l'utilisateur et du temps. L'utilisateur peut basculer entre deux représentations : équatoriale et horizontale.
 
-## Available Scripts
+## Fonctionnalités
 
-In the project directory, you can run:
+- **Visualisation du ciel étoilé** : L'application affiche les étoiles sur une sphère céleste virtuelle.
+- **Bascule entre les coordonnées** : L'utilisateur peut choisir de visualiser le ciel en coordonnées équatoriales ou horizontales.
+- **Rotation automatique** : Le ciel étoilé tourne automatiquement en fonction du temps sidéral local.
 
-### `npm start`
+## Installation
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Prérequis
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- Node.js et npm installés sur votre machine.
 
-### `npm test`
+### Étapes d'installation
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. Clonez le dépôt :
 
-### `npm run build`
+```bash
+git clone [URL_DU_DEPOT]
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. Naviguez dans le dossier du projet :
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+cd chemin_du_dossier
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+3. Installez les dépendances :
 
-### `npm run eject`
+```bash
+nvm use 16
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+npm install
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+4. Démarrez l'application :
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```bash
+npm start
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Votre application devrait maintenant être accessible à l'adresse `http://localhost:3000`.
 
-## Learn More
+## Utilisation
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+1. Ouvrez l'application dans votre navigateur.
+2. Utilisez le menu latéral pour basculer entre les représentations équatoriales et horizontales.
+3. Observez le ciel étoilé se déplacer en temps réel.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Contributions
 
-### Code Splitting
+Les contributions sont les bienvenues ! Veuillez ouvrir une issue ou soumettre une pull request.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Licence
 
-### Analyzing the Bundle Size
+Ce projet est sous licence MIT.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Remerciements
 
-### Making a Progressive Web App
+Un grand merci à tous ceux qui ont contribué au projet !
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---

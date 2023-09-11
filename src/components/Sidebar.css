@@ -1,0 +1,26 @@
+.representation-title {
+    text-decoration: underline;
+    color:white;
+    font-size: 1.0em;
+    margin-bottom: 20px; 
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column; 
+    justify-content: top; 
+    align-items: center;    
+}
+
+.magnitude-slider {
+    margin-top:20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Pour centrer horizontalement */
+    justify-content: center; /* Pour centrer verticalement, si nécessaire */
+}
+
+.magnitude-slider label {
+    color: white;
+    margin-bottom: 10px; /* Optionnel: pour ajouter un peu d'espace entre le label et le slider */
+}

@@ -1,0 +1,44 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    position: relative;
+}
+
+.header-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+.right-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Cette propriété pousse les éléments enfants aux extrémités */
+    width: 100%; /* Utilisez toute la largeur disponible à droite du titre */
+    gap: 10px;
+}
+
+.location {
+    font-size: 1.0em;
+    /* La propriété margin-right n'est plus nécessaire ici */
+}
+
+.time {
+    font-size: 1.1em;          /* Slightly bigger than normal text for emphasis */
+    margin-left: 15px;        /* Some space from the other elements */
+    background-color: #444;   /* A darker background for distinction */
+    color: white;             /* White text on the darker background */
+    padding: 2px 8px;         /* Some padding for aesthetics */
+    border-radius: 4px;       /* Rounded corners for a "tag" like appearance */
+}
+
+
+
+
+
+
+
+
