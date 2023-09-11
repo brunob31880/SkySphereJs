@@ -150,7 +150,7 @@ function SkyProvider({ children }) {
                 setStarsData(starsData);
             });
 
-        fetch('./datas/constellation_line_hip_fake.csv') // Assurez-vous d'avoir le bon chemin vers le fichier
+        fetch('./datas/constellation_line_hip.csv') // Assurez-vous d'avoir le bon chemin vers le fichier
             .then(response => response.text())
             .then(data => {
                 const lines = data.split('\n').filter(line => !line.startsWith('#') && line.trim() !== '');
