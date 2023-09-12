@@ -1,6 +1,7 @@
 {
   "name": "skyspherejs",
   "version": "0.1.0",
+  "homepage": "https://brunob31880.github.io/SkySphereJs",
   "private": true,
   "dependencies": {
     "@react-three/drei": "^9.82.0",
@@ -18,7 +19,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
@@ -41,6 +44,7 @@
   "devDependencies": {
     "@babel/core": "^7.22.15",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "@babel/preset-env": "^7.22.15"
+    "@babel/preset-env": "^7.22.15",
+    "gh-pages": "^6.0.0"
   }
 }

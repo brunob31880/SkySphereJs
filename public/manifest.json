@@ -1,6 +1,7 @@
 {
   "short_name": "React App",
   "name": "Create React App Sample",
+  "homepage": "https://brunob31880.github.io/SkySphereJs",
   "icons": [
     {
       "src": "favicon.ico",

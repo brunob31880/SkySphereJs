@@ -1,12 +1,25 @@
 .App {
   display: grid;
-  grid-template-columns: 4fr 1fr; /* 80% pour le contenu, 20% pour la barre latérale */
-  grid-template-rows: 10vh auto; /* 10% pour l'en-tête, le reste pour le contenu */
+  grid-template-columns: 4fr 1fr;
+  grid-template-rows: 10vh auto;
   height: 100vh;
   grid-template-areas: 
       "header header"
       "content sidebar";
 }
+
+.App.mobile {
+  grid-template-columns: 1fr; /* Utilisez toute la largeur pour le contenu mobile */
+  grid-template-areas: 
+      "header"
+      "content";
+}
+
+
+
+
+
+
 
 .header {
   grid-area: header;

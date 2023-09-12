@@ -66,8 +66,6 @@ Les contributions sont les bienvenues ! Veuillez ouvrir une issue ou soumettre u
 
 Ce projet est sous licence MIT.
 
-## Remerciements
 
-Un grand merci à tous ceux qui ont contribué au projet !
 
 ---

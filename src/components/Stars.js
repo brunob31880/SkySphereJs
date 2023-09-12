@@ -2,34 +2,23 @@ import { useEffect, useRef, useContext } from 'react';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { SkyContext } from '../contexts/Skycontext';
-import { getSiderealTime } from '../utils/astroUtils';
 
-function Stars() {
+
+function Stars({rotation}) {
     const { scene } = useThree();
-    const { maxShownMagnitude, representation, location, starsData } = useContext(SkyContext);
+    const { maxShownMagnitude,  starsData } = useContext(SkyContext);
 
     // Créez une référence pour le groupe
     const starGroupRef = useRef(new THREE.Group());
 
     useEffect(() => {
-        if (representation === 'Equatorial') {
-            starGroupRef.current.rotation.y = 0;
-            starGroupRef.current.rotation.x = 0;
-        } else if (representation === 'Horizontal') {
-            if (!starGroupRef.current) return;
-            const longitude = location.longitude;
-            const latitude = location.latitude;
-            const LST = getSiderealTime(longitude);
-            const LSTinRadians = THREE.MathUtils.degToRad(LST);
-            starGroupRef.current.rotation.y = LSTinRadians;
-            const inclination = THREE.MathUtils.degToRad(90 - latitude);
-            starGroupRef.current.rotation.x = inclination;
-        }
-    }, [representation, location]);
+        starGroupRef.current.rotation.y = rotation.y;
+        starGroupRef.current.rotation.x = rotation.x;
+    }, [rotation]);
 
     useEffect(() => {
         if (!starsData) return;
-
+        console.log("Mise à jour maxShownMagnitude= " + maxShownMagnitude);
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(starsData.vertices, 3));
         geometry.setAttribute('magnitude', new THREE.Float32BufferAttribute(starsData.magnitudes, 1));
@@ -43,7 +32,7 @@ function Stars() {
             // Créer un gradient radial
             const gradient = ctx.createRadialGradient(32, 32, 8, 32, 32, 32);
             gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');  // Transparent aux bords
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -60,36 +49,36 @@ function Stars() {
             },
             vertexShader: `
                 attribute float magnitude;
+                uniform float maxMagnitude;
                 varying float vMagnitude;
                 void main() {
                     vMagnitude = magnitude;
-                    gl_PointSize = 10.0 / (vMagnitude + 1.0);
+                    gl_PointSize = 1.0 + 19.0 * (1.0 - vMagnitude / maxMagnitude);
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
                 }
             `,
             fragmentShader: `
-    uniform sampler2D starTexture;
-    uniform float maxMagnitude;
-    varying float vMagnitude;
-    void main() {
-        if (vMagnitude > maxMagnitude) {
-            discard; // Ne pas afficher les étoiles dont la magnitude est supérieure à maxMagnitude
-        }
-        float alpha = pow(4.0, -0.00001 * vMagnitude)+0.3;  // Utilisation d'une fonction exponentielle
-        gl_FragColor = texture2D(starTexture, gl_PointCoord) * vec4(1.0, 1.0, 1.0, alpha);
-    }
-`,
-
+                uniform sampler2D starTexture;
+                uniform float maxMagnitude;
+                varying float vMagnitude;
+                void main() {
+                    if (vMagnitude > maxMagnitude) {
+                        discard;
+                    }
+                    gl_FragColor = texture2D(starTexture, gl_PointCoord);
+                }
+            `,
             transparent: true,
             depthTest: true,
             depthWrite: false,
             blending: THREE.AdditiveBlending,
         });
-
-
+        // Supprimez tous les enfants existants de starGroupRef.current
+        while (starGroupRef.current.children.length > 0) {
+            starGroupRef.current.remove(starGroupRef.current.children[0]);
+        }
         const points = new THREE.Points(geometry, shaderMaterial);
         starGroupRef.current.add(points);
-        // Ajoutez le groupe contenant les étoiles  à la scène
         scene.add(starGroupRef.current);
 
         return () => {

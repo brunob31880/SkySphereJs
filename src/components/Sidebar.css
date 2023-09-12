@@ -4,7 +4,11 @@
     font-size: 1.0em;
     margin-bottom: 20px; 
 }
-
+.constellations-title {
+    color:white;
+    font-size: 1.0em;
+    margin-bottom: 20px; 
+}
 .sidebar {
     display: flex;
     flex-direction: column; 
@@ -23,4 +27,32 @@
 .magnitude-slider label {
     color: white;
     margin-bottom: 10px; /* Optionnel: pour ajouter un peu d'espace entre le label et le slider */
+}
+
+.toggle-btn {
+    width: 60px;
+    height: 30px;
+    border: 1px solid #aaa;
+    border-radius: 15px;
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.toggle-btn .toggle-indicator {
+    width: 28px;
+    height: 28px;
+    background-color: #eee;
+    border-radius: 50%;
+    position: absolute;
+    top: 1px;
+    transition: 0.3s;
+}
+
+.toggle-btn.on .toggle-indicator {
+    right: 1px;
+}
+
+.toggle-btn.off .toggle-indicator {
+    left: 1px;
 }

@@ -3,8 +3,8 @@ import './Sidebar.css';
 import { SkyContext } from '../contexts/Skycontext';
 
 function Sidebar() {
-    const { maxShownMagnitude, setMaxShownMagnitude, representation, toggleRepresentation } = useContext(SkyContext);
-    
+    const { maxShownMagnitude, setMaxShownMagnitude, representation, toggleRepresentation, shownConstellations, toggleShownConstellations } = useContext(SkyContext);
+
     // Utilisation d'un état local pour suivre la valeur du curseur
     const [sliderValue, setSliderValue] = useState(maxShownMagnitude);
 
@@ -13,19 +13,27 @@ function Sidebar() {
         setSliderValue(newMagnitude);
         setMaxShownMagnitude(newMagnitude);
     };
-
+   
     return (
         <div className="sidebar">
             <h2 className="representation-title">{representation}</h2>
             <button onClick={toggleRepresentation}>Basculer la représentation</button>
+            <h2 className="constellations-title">Constellations: {shownConstellations}</h2>
+            <div
+                className={`toggle-btn ${shownConstellations === 'Oui' ? 'on' : 'off'}`}
+                onClick={toggleShownConstellations}
+            >
+                <div className="toggle-indicator"></div>
+            </div>
+
             <div className="magnitude-slider">
                 <label>Magnitude maximale affichée: {sliderValue}</label>
-                <input 
-                    type="range" 
-                    min="0" 
-                    max="10" 
-                    step="0.1" 
-                    value={sliderValue} 
+                <input
+                    type="range"
+                    min="0"
+                    max="10"
+                    step="0.1"
+                    value={sliderValue}
                     onChange={handleSliderChange}
                 />
             </div>

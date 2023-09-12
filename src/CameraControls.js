@@ -27,7 +27,7 @@ function CameraControls() {
     camera.lookAt(lookAt);
   }, [lookAt, camera]);
 
-  return <OrbitControls />;
+  return <OrbitControls enableZoom={true} />;
 }
 
 export default CameraControls;

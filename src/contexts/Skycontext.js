@@ -6,6 +6,7 @@ const SkyContext = React.createContext();
 
 function SkyProvider({ children }) {
     const [representation, setRepresentation] = useState("Equatorial");
+    const [shownConstellations,setShownConstellations] = useState("Oui");
     const [currentTime, setCurrentTime] = useState(new Date());
     const [location, setLocation] = useState({ latitude: null, longitude: null });
     const [starsData, setStarsData] = useState(null);
@@ -21,7 +22,11 @@ function SkyProvider({ children }) {
             setRepresentation('Equatorial');
         }
     };
-
+    const toggleShownConstellations=()=>{
+        console.log("Toggle shown Constellations")
+        if (shownConstellations==="Oui") setShownConstellations("Non")
+        else setShownConstellations("Oui")
+    }
     useEffect(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(position => {
@@ -56,7 +61,8 @@ function SkyProvider({ children }) {
     };
 
     useEffect(() => {
-        fetch('./datas/hip.tsv')
+        fetch(`${process.env.PUBLIC_URL}/datas/hip.tsv`)
+
             .then(response => response.text())
             .then(data => {
                 let minRA = Infinity;
@@ -65,7 +71,7 @@ function SkyProvider({ children }) {
                 let maxDEC = -Infinity;
 
                 const lines = data.split('\n').filter(line => !line.startsWith('#') && line.trim() !== '');
-
+            
                 const coords = [];
                 const newMagnitudes = [];
 
@@ -150,7 +156,8 @@ function SkyProvider({ children }) {
                 setStarsData(starsData);
             });
 
-        fetch('./datas/constellation_line_hip.csv') // Assurez-vous d'avoir le bon chemin vers le fichier
+            fetch(`${process.env.PUBLIC_URL}/datas/constellation_line_hip.csv`)
+           
             .then(response => response.text())
             .then(data => {
                 const lines = data.split('\n').filter(line => !line.startsWith('#') && line.trim() !== '');
@@ -172,7 +179,7 @@ function SkyProvider({ children }) {
 
 
     return (
-        <SkyContext.Provider value={{ maxShownMagnitude, setMaxShownMagnitude, starsData, setStarsData, representation, setRepresentation, currentTime, location, toggleRepresentation, constellationLines }}>
+        <SkyContext.Provider value={{ shownConstellations,toggleShownConstellations,maxShownMagnitude, setMaxShownMagnitude, starsData, setStarsData, representation, setRepresentation, currentTime, location, toggleRepresentation, constellationLines }}>
             {children}
         </SkyContext.Provider>
     );

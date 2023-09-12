@@ -3,7 +3,7 @@ import React, { useContext } from 'react';
 import './Header.css';
 import { SkyContext } from '../contexts/Skycontext';
 
-function Header() {
+function Header({deviceType}) {
     const { currentTime, location } = useContext(SkyContext);
     //console.log("Location: ", location)
 
@@ -12,7 +12,7 @@ function Header() {
 
     return (
         <div className="header">
-            <h1 className="header-title">SkySphereJS</h1>
+          {deviceType !== "mobile" && <h1 className="header-title">SkySphereJS</h1>}
             <div className="right-section">
                 <span className="location">
                     {location.latitude && location.longitude ?

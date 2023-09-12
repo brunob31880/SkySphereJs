@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import SkyDome from './components/SkyDome';
 import ErrorBoundary from './ErrorBoundary';
@@ -7,15 +7,43 @@ import Header from './components/Header';
 import { SkyProvider } from './contexts/Skycontext';
 
 function App() {
+  const [deviceType, setDeviceType] = useState(getDeviceType(window.innerWidth));
+/**
+  * 
+  * @param {*} width 
+  * @returns 
+  */
+function getDeviceType(width) {
+  console.log("Width="+width);
+  if (width < 768) {
+    return 'mobile';
+  } else if (width <= 1180) {
+    return 'tablette';
+  } else {
+    return 'ordinateur';
+  }
+}
+useEffect(() => {
+  const handleResize = () => {
+    setDeviceType(getDeviceType(window.innerWidth));
+  };
+
+  window.addEventListener('resize', handleResize);
+  return () => {
+    window.removeEventListener('resize', handleResize);
+  };
+}, []);
+
+
   return (
-    <div className="App">
+    <div className={`App ${deviceType === "mobile" ? "mobile" : ""}`}>
       <SkyProvider>
         <ErrorBoundary>
-          <Header />
+          <Header deviceType={deviceType} />
           <div className="content">
             <SkyDome />
           </div>
-          <Sidebar />
+          {deviceType !== "mobile" && <Sidebar />}
         </ErrorBoundary>
       </SkyProvider>
     </div>
