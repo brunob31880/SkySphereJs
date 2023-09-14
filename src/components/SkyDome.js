@@ -21,7 +21,7 @@ Lorsque vous utilisez axesHelper, il affiche des lignes représentant ces axes d
 function SkyDome() {
     return (
         <Canvas style={{ background: '#001122' }} >
-            <orthographicCamera position={[0, 0, 0]} left={-1000} right={1000} top={1000} bottom={-1000} near={0.1} far={1000} />
+            <orthographicCamera position={[0, 0, 0]} left={-1500} right={1500} top={1500} bottom={-1500} near={0.1} far={1500} />
             
             {/* Afficher le ciel nocturne. */}
             <Sky />

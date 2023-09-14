@@ -78,6 +78,7 @@ function SkyProvider({ children }) {
             const lines = starsDataText.split('\n').filter(line => !line.startsWith('#') && line.trim() !== '');
 
             const coords = [];
+            const hipparcosIds =[];
             const newMagnitudes = [];
             const RA_INDEX = 1;
             const DEC_INDEX = 2;
@@ -123,6 +124,7 @@ function SkyProvider({ children }) {
 
                 if (!isNaN(x) && !isNaN(y) && !isNaN(z)) {
                     coords.push(x, y, z);
+                    hipparcosIds.push(hipNumber)
                 } else {
                     console.error("Problem with HIP=" + parts[0]);
                 }
@@ -149,7 +151,8 @@ function SkyProvider({ children }) {
             const starsData = {
                 vertices: coords,
                 magnitudes: newMagnitudes,
-                hipToIndex: hipToIndex
+                hipToIndex: hipToIndex,
+                hipparcosIds
             };
             // Stockez les données dans le contexte
             setStarsData(starsData);

@@ -11,10 +11,12 @@ function Stars({ rotation }) {
     const { maxShownMagnitude, starsData } = useContext(SkyContext);
 
     const [isDebugEnabled, setIsDebugEnabled] = useState(true);
+    const hitboxes = useRef([]);
 
     const starGroupRef = useRef(new THREE.Group());
     const highlightedStarRef = useRef(null);
     const raycaster = new THREE.Raycaster();
+    raycaster.linePrecision = 100;
     const mouse = new THREE.Vector2();
     const rayHelperRef = useRef(null);
 
@@ -27,12 +29,61 @@ function Stars({ rotation }) {
         console.log("Debug=" + isDebugEnabled)
     }, [isDebugEnabled]);
 
+    function addDebugRay() {
+        if (!rayHelperRef.current) {
+            rayHelperRef.current = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 1050, 0xff0000);
+            scene.add(rayHelperRef.current);
+        }
+    }
+
+    function removeDebugRay() {
+        if (rayHelperRef.current) {
+            scene.remove(rayHelperRef.current);
+            rayHelperRef.current = null;
+        }
+    }
+
+
+    function highlightStar(star) {
+        console.log("Highlight Star Function Called");
+
+        if (highlightedStarRef.current) {
+            console.log("Removing previously highlighted star.");
+            starGroupRef.current.remove(highlightedStarRef.current);
+        }
+
+        const circleGeometry = new THREE.RingGeometry(14, 24, 32);
+        const circleMaterial = new THREE.MeshBasicMaterial({ color: 0x0000FF, side: THREE.DoubleSide });
+        const circle = new THREE.Mesh(circleGeometry, circleMaterial);
+
+        // Get the star's (vertex) position from the Points geometry
+        const starPosition = star.object.geometry.attributes.position;
+        const vertex = new THREE.Vector3();
+        vertex.fromBufferAttribute(starPosition, star.index);
+        circle.position.copy(vertex);
+
+        console.log("Star Position:", vertex);
+
+        // Calculate the direction from the camera to the star
+        const direction = new THREE.Vector3().subVectors(vertex, camera.position).normalize();
+
+        // Use the lookAt method to orient the circle towards the camera
+        circle.lookAt(camera.position);
+
+        starGroupRef.current.add(circle);
+        highlightedStarRef.current = circle;
+
+        console.log("Star has been highlighted!");
+    }
+
+
     useEffect(() => {
         if (!starsData) return;
 
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(starsData.vertices, 3));
         geometry.setAttribute('magnitude', new THREE.Float32BufferAttribute(starsData.magnitudes, 1));
+        geometry.setAttribute('hipparcosId', new THREE.Float32BufferAttribute(starsData.hipparcosIds, 1));
 
         function createStarTexture() {
             const canvas = document.createElement('canvas');
@@ -90,12 +141,42 @@ function Stars({ rotation }) {
 
         const points = new THREE.Points(geometry, shaderMaterial);
         starGroupRef.current.add(points);
+
+        const visibleStarPositions = [];
+
+        for (let i = 0; i < starsData.magnitudes.length; i++) {
+            if (starsData.magnitudes[i] <= maxShownMagnitude) {
+                visibleStarPositions.push(starsData.vertices[i * 3], starsData.vertices[i * 3 + 1], starsData.vertices[i * 3 + 2]);
+            }
+        }
+
+        if (visibleStarPositions.length > 0) {
+            const hitboxMaterial = new THREE.PointsMaterial({ size: 60, transparent: true, opacity: 0 });
+            /*
+            const hitboxMaterial = new THREE.PointsMaterial({
+                size: 60,
+                transparent: true,
+                opacity: 0.5,  // Opacité ajustée pour voir la hitbox
+                color: 0xff0000  // couleur en rouge pour différencier la hitbox
+            });
+            */
+            const hitboxGeometry = new THREE.BufferGeometry();
+            hitboxGeometry.setAttribute('position', new THREE.Float32BufferAttribute(visibleStarPositions, 3));
+            const hitboxes = new THREE.Points(hitboxGeometry, hitboxMaterial);
+            starGroupRef.current.add(hitboxes);
+        }
+
+
         scene.add(starGroupRef.current);
 
         return () => {
             scene.remove(starGroupRef.current);
         };
+
+
     }, [starsData, scene, maxShownMagnitude]);
+
+
     useEffect(() => {
         function handleKeyDown(event) {
             // Par exemple, vérifiez si la touche 'D' est pressée :
@@ -103,7 +184,6 @@ function Stars({ rotation }) {
                 setIsDebugEnabled(prev => !prev);  // bascule le mode debug
             }
         }
-
         window.addEventListener('keydown', handleKeyDown);
 
         return () => {
@@ -112,33 +192,19 @@ function Stars({ rotation }) {
     }, []);
 
 
-    
-    
-
 
     useEffect(() => {
         function onClick(event) {
             mouse.x = (event.offsetX / gl.domElement.clientWidth) * 2 - 1;
             mouse.y = -(event.offsetY / gl.domElement.clientHeight) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
-            raycaster.far = 1100;  // Exemple
+            raycaster.far = 1100;
 
-            // Créer ou mettre à jour l'ArrowHelper          
             if (isDebugEnabled) {
-                if (!rayHelperRef.current) {
-                    rayHelperRef.current = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 1050, 0xff0000);  // Exemple
-                    scene.add(rayHelperRef.current);
-                } else {
-                    rayHelperRef.current.setDirection(raycaster.ray.direction);
-                    rayHelperRef.current.position.copy(raycaster.ray.origin);
-                }
+                addDebugRay();
             } else {
-                if (rayHelperRef.current) {
-                    scene.remove(rayHelperRef.current);
-                    rayHelperRef.current = null;  // Important pour ne pas conserver de référence obsolète
-                }
+                removeDebugRay();
             }
-
 
             // Filtrer les objets pour ne pas inclure le cercle bleu mis en évidence lors de l'interception
             const objectsToIntersect = starGroupRef.current.children.filter(obj => obj !== highlightedStarRef.current);
@@ -148,44 +214,19 @@ function Stars({ rotation }) {
             if (intersects.length > 0) {
                 console.log("Intersect=", intersects[0])
                 const star = intersects[0];
+                const hipparcosIdAttribute = star.object.geometry.attributes.hipparcosId;
+                const hipparcosId = hipparcosIdAttribute.getX(star.index);   
+                console.log("Intercepted Star Hipparcos ID:", hipparcosId);
                 highlightStar(star);
             }
         }
 
-        function highlightStar(star) {
-            console.log("Highlight Star Function Called");
-        
-            if (highlightedStarRef.current) {
-                console.log("Removing previously highlighted star.");
-                starGroupRef.current.remove(highlightedStarRef.current);
-            }
-        
-            const circleGeometry = new THREE.CircleGeometry(0.05, 32);
-            const circleMaterial = new THREE.MeshBasicMaterial({ color: 0x0000FF, side: THREE.DoubleSide });
-            const circle = new THREE.Mesh(circleGeometry, circleMaterial);
-        
-            // Get the star's (vertex) position from the Points geometry
-            const starPosition = star.object.geometry.attributes.position;
-            const vertex = new THREE.Vector3();
-            vertex.fromBufferAttribute(starPosition, star.index);
-            circle.position.copy(vertex);
-        
-            console.log("Star Position:", vertex);
-        
-            starGroupRef.current.add(circle);
-            highlightedStarRef.current = circle;
-        
-            console.log("Star has been highlighted!");
-        }
-        
 
         window.addEventListener('click', onClick);
 
         return () => {
             window.removeEventListener('click', onClick);
-            if (rayHelperRef.current) {
-                scene.remove(rayHelperRef.current);
-            }
+            removeDebugRay();
         };
     }, [camera, gl, isDebugEnabled]);
 
