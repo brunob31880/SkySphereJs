@@ -1,12 +1,12 @@
-# Projet SkySphereJS
+# SkySphereJS
 
-Sky Simulator est une application permettant de visualiser le ciel étoilé en fonction de la position de l'utilisateur et du temps. 
+SkySphereJS est une application permettant de visualiser le ciel étoilé en fonction de la position de l'utilisateur et du temps. 
 
 ![skyspherejs](./doc/skyspherejs.png)
 
 L'utilisateur peut basculer entre deux représentations : équatoriale et horizontale.
 
-
+Le projet est en chantier
 
 ## Fonctionnalités
 
