@@ -20,14 +20,22 @@ function CameraControls() {
       const deltaX = -(event.offsetX - previousMousePosition.x) * sensitivity;
       const deltaY = -(event.offsetY - previousMousePosition.y) * sensitivity;
 
-      const horizontalRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), deltaX);
-      const verticalRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), deltaY);
-
-      camera.quaternion.multiply(horizontalRotation);
-      camera.quaternion.multiply(verticalRotation);
+      // Vérifier quelle rotation (horizontale ou verticale) est la plus grande
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Rotation horizontale seulement
+        console.log("Rotation horizontale")
+        const horizontalRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), deltaX);
+        camera.quaternion.multiply(horizontalRotation);
+      } else {
+        // Rotation verticale seulement
+        console.log("Rotation verticale")
+        const verticalRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), deltaY);
+        camera.quaternion.multiply(verticalRotation);
+      }
 
       setPreviousMousePosition({ x: event.offsetX, y: event.offsetY });
     }
+
 
     const canvas = gl.domElement;
     canvas.addEventListener('mousemove', handleMouseMove);
@@ -55,8 +63,12 @@ function CameraControls() {
   }, [gl.domElement, camera]);
 
 
-  
+
   useEffect(() => {
+
+    camera.layers.enable(0);  // permet à la caméra de voir la couche 0
+    camera.layers.enable(1);  // permet à la caméra de voir la couche 1
+
     function handleKeyDown(event) {
       const rotationAngle = 0.05;  // Ajustez cette valeur pour des rotations plus rapides ou plus lentes
 
@@ -109,6 +121,7 @@ function CameraControls() {
 
   useEffect(() => {
     camera.position.set(0, 0, 0);
+    camera.lookAt(new THREE.Vector3(1, 0, 0));
     camera.updateProjectionMatrix();
   }, []);
 

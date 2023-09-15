@@ -16,6 +16,7 @@ function Stars({ rotation }) {
     const starGroupRef = useRef(new THREE.Group());
     const highlightedStarRef = useRef(null);
     const raycaster = new THREE.Raycaster();
+    raycaster.layers.set(0); 
     raycaster.linePrecision = 100;
     const mouse = new THREE.Vector2();
     const rayHelperRef = useRef(null);
@@ -31,10 +32,17 @@ function Stars({ rotation }) {
 
     function addDebugRay() {
         if (!rayHelperRef.current) {
+            console.log("Recréation du rayHelper");
             rayHelperRef.current = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 1050, 0xff0000);
             scene.add(rayHelperRef.current);
         }
+        else  {
+            console.log("Mise à jour de la direction du RayHelper");
+            rayHelperRef.current.setDirection(raycaster.ray.direction);
+            rayHelperRef.current.position.copy(raycaster.ray.origin);
+        }
     }
+    
 
     function removeDebugRay() {
         if (rayHelperRef.current) {
@@ -195,6 +203,7 @@ function Stars({ rotation }) {
 
     useEffect(() => {
         function onClick(event) {
+            console.log("Clic event ",event)
             mouse.x = (event.offsetX / gl.domElement.clientWidth) * 2 - 1;
             mouse.y = -(event.offsetY / gl.domElement.clientHeight) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);

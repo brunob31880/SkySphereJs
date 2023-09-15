@@ -35,30 +35,78 @@ function RADECGrid() {
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             return geometry;
         };
+        // Étape 1: Chargez une police
+        const fontLoader = new THREE.FontLoader();
 
-        for (let ra = 0; ra < 360; ra += increment) {
-            const circGeom = createCircleGeometry(1000);
-            
-            // Tourner le cercle de 90 degrés autour de l'axe Z pour le positionner dans le plan YX.
-            circGeom.rotateZ(THREE.MathUtils.degToRad(90));
-            
-            // Ensuite, tourner la géométrie autour de l'axe Y par ra degrés.
-            circGeom.rotateY(THREE.MathUtils.degToRad(ra));
-        
-            const circ = new THREE.Line(circGeom, dashMaterialRA);
-            circ.computeLineDistances();
-            group.current.add(circ);
-        }
-        
+        fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+            for (let ra = 0; ra < 360; ra += increment) {
+                const circGeom = createCircleGeometry(1000);
 
-        for (let dec = -90; dec < 90; dec += increment) {
-            const circGeom = createCircleGeometry(1000*Math.cos(THREE.MathUtils.degToRad(dec) ));
-            const circ = new THREE.Line(circGeom, dashMaterialDEC);
-            circ.translateY(1000*Math.sin(THREE.MathUtils.degToRad(dec)));
-            circ.computeLineDistances();
-            group.current.add(circ);
-        }
+                // Tourner le cercle de 90 degrés autour de l'axe Z pour le positionner dans le plan YZ.
+                circGeom.rotateZ(THREE.MathUtils.degToRad(90));
 
+                // Ensuite, tourner la géométrie autour de l'axe Y par ra degrés.
+                circGeom.rotateY(THREE.MathUtils.degToRad(ra));
+
+                const circ = new THREE.Line(circGeom, dashMaterialRA);
+                circ.computeLineDistances();
+                // Pour le raycasting
+                circ.layers.set(1);
+                group.current.add(circ);
+                // Étape 2: Créez une TextGeometry pour chaque valeur de 'ra'
+                const textGeom = new THREE.TextGeometry(String(ra), {
+                    font: font,
+                    size: 40,  // Ajustez selon vos besoins
+                    height: 5, // Ajustez selon vos besoins
+                    curveSegments: 12,
+                    bevelEnabled: false,
+                });
+
+                // Étape 3: Positionnez le texte sur la sphère
+                const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });  // Couleur du texte, ajustez selon vos besoins
+                const textMesh = new THREE.Mesh(textGeom, textMaterial);
+
+                const radius = 1000;
+                textMesh.position.x = radius * Math.cos(THREE.MathUtils.degToRad(ra));
+                textMesh.position.z = radius * Math.sin(THREE.MathUtils.degToRad(ra));
+                textMesh.position.y = 0;
+
+                textMesh.lookAt(0, 0, 0);  // Faites en sorte que le texte regarde vers le centre de la sphère
+                group.current.add(textMesh);
+            }
+
+
+            for (let dec = -90; dec < 90; dec += increment) {
+                const circGeom = createCircleGeometry(1000 * Math.cos(THREE.MathUtils.degToRad(dec)));
+                const circ = new THREE.Line(circGeom, dashMaterialDEC);
+                circ.translateY(1000 * Math.sin(THREE.MathUtils.degToRad(dec)));
+                circ.computeLineDistances();
+                // Pour le raycasting
+                circ.layers.set(1);
+                group.current.add(circ);
+                // Étape 2: Créez une TextGeometry pour chaque valeur de 'dec'
+                const textGeom = new THREE.TextGeometry(String(dec), {
+                    font: font,
+                    size: 40,  // Taille du texte, ajustez selon vos besoins
+                    height: 5, // Profondeur du texte, ajustez selon vos besoins
+                    curveSegments: 12,
+                    bevelEnabled: false,
+                });
+
+                // Étape 3: Positionnez le texte sur la sphère
+                const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });  // Couleur du texte, ajustez selon vos besoins
+                const textMesh = new THREE.Mesh(textGeom, textMaterial);
+
+                const radius = 1000;
+                textMesh.position.x = radius *  Math.cos(THREE.MathUtils.degToRad(dec));
+                textMesh.position.y = radius * Math.sin(THREE.MathUtils.degToRad(dec));
+                textMesh.position.z = 0
+
+                textMesh.lookAt(0, 0, 0);  // Faites en sorte que le texte regarde vers le centre de la sphère
+                group.current.add(textMesh);
+            }
+
+        })
     }, []);
 
     return <group ref={group} />;

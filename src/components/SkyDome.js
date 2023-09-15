@@ -33,7 +33,7 @@ function SkyDome() {
             <RADECGrid />
 
             {/* Affiche les aides pour les axes. */}
-            <axesHelper args={[500]} />
+            <axesHelper args={[1000]} />
 
             {/* Éclaire la scène avec une lumière ambiante. */}
             <ambientLight intensity={0.5} />
