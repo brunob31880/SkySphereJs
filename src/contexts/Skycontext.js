@@ -66,8 +66,9 @@ function SkyProvider({ children }) {
     useEffect(() => {
         Promise.all([
             fetch(`${process.env.PUBLIC_URL}/datas/hip.tsv`).then(response => response.text()),
-            fetch(`${process.env.PUBLIC_URL}/datas/constellation_line_hip.csv`).then(response => response.text())
-        ]).then(([starsDataText, constellationLinesText]) => {
+            fetch(`${process.env.PUBLIC_URL}/datas/constellation_line_hip.csv`).then(response => response.text()),
+            fetch(`${process.env.PUBLIC_URL}/datas/ident4.csv`).then(response => response.text())
+        ]).then(([starsDataText, constellationLinesText, idents]) => {
             // Logique pour traiter starsDataText et constellationLinesText
             // Traitement de starsDataText
             let minRA = Infinity;
@@ -78,7 +79,7 @@ function SkyProvider({ children }) {
             const lines = starsDataText.split('\n').filter(line => !line.startsWith('#') && line.trim() !== '');
 
             const coords = [];
-            const hipparcosIds =[];
+            const hipparcosIds = [];
             const newMagnitudes = [];
             const RA_INDEX = 1;
             const DEC_INDEX = 2;
@@ -121,7 +122,9 @@ function SkyProvider({ children }) {
                 const x = R * Math.cos(dec) * Math.cos(ra);
                 const z = R * Math.cos(dec) * Math.sin(ra);
                 const y = R * Math.sin(dec);
+                // pour deboggage affichage de la position de la polaire
 
+                if (hipNumber === 11767) console.log('Etoile polaire: X=' + x + " Y=" + y + " Z=" + z + " ");
                 if (!isNaN(x) && !isNaN(y) && !isNaN(z)) {
                     coords.push(x, y, z);
                     hipparcosIds.push(hipNumber)
@@ -148,11 +151,36 @@ function SkyProvider({ children }) {
             const minMagnitude = Math.min(...validMagnitudes);
             const maxMagnitude = Math.max(...validMagnitudes);
             console.log("Magnitude Range:", minMagnitude, "-", maxMagnitude);
+
+            const identStars = {};
+
+            // console.log(idents.split('\n'))
+            const identLines = idents.split('\n').filter(line => line.trim() !== '');
+            identLines.forEach(line => {
+                const parts = line.split('|');
+                let starName = parts[0].trim();
+                // Retire les guillemets en trop
+                if (starName.startsWith('"')) {
+                    starName = starName.substring(1);
+                }
+                if (starName.endsWith('"')) {
+                    starName = starName.substring(0, starName.length - 1);
+                }
+
+                const hipNumber = parseInt(parts[1].trim(), 10);
+
+                if (!isNaN(hipNumber)) {
+                    identStars[hipNumber] = starName;
+                }
+            });
+
+
             const starsData = {
                 vertices: coords,
                 magnitudes: newMagnitudes,
                 hipToIndex: hipToIndex,
-                hipparcosIds
+                hipparcosIds,
+                identStars
             };
             // Stockez les données dans le contexte
             setStarsData(starsData);
@@ -175,7 +203,7 @@ function SkyProvider({ children }) {
     }, []);
 
     return (
-        <SkyContext.Provider value={{ isLoaded,shownConstellations, toggleShownConstellations, maxShownMagnitude, setMaxShownMagnitude, starsData, setStarsData, representation, setRepresentation, currentTime, location, toggleRepresentation, constellationLines, isLoaded }}>
+        <SkyContext.Provider value={{ isLoaded, shownConstellations, toggleShownConstellations, maxShownMagnitude, setMaxShownMagnitude, starsData, setStarsData, representation, setRepresentation, currentTime, location, toggleRepresentation, constellationLines, isLoaded }}>
             {children}
         </SkyContext.Provider>
     );
