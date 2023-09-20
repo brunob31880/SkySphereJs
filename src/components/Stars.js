@@ -53,25 +53,37 @@ function Stars({ rotation }) {
             rayHelperRef.current = null;
         }
     }
-
+    /**
+     * 
+     * @param {*} text 
+     * @returns 
+     */
     function createTextTexture(text) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
 
         ctx.font = '58px Arial'; // Modifiez selon vos préférences
-        ctx.fillStyle = "blue"; 
+        ctx.fillStyle = "blue";
         ctx.fillText(text, 0, 58);
         const texture = new THREE.CanvasTexture(canvas);
         return texture;
     }
+    /**
+     * 
+     * @param {*} texture 
+     * @returns 
+     */
     function createTextSprite(texture) {
-        const spriteMaterial = new THREE.SpriteMaterial({ map: texture , color: 0x0000ff});
+        const spriteMaterial = new THREE.SpriteMaterial({ map: texture, color: 0x0000ff });
         const sprite = new THREE.Sprite(spriteMaterial);
         sprite.scale.set(200, 100, 1); // Ajustez la taille selon vos préférences
         return sprite;
     }
 
-
+    /**
+     * 
+     * @param {*} star 
+     */
     function highlightStar(star) {
         console.log("Highlight Star Function Called");
 
@@ -110,7 +122,7 @@ function Stars({ rotation }) {
 
             // Positionnez le sprite à côté du cercle
             textSprite.position.copy(vertex);
-            textSprite.position.x -= 70; 
+            textSprite.position.x -= 70;
             textSprite.position.y -= 70;
             // Ajoutez le sprite au groupe d'étoiles
             starGroupRef.current.add(textSprite);
@@ -121,7 +133,7 @@ function Stars({ rotation }) {
             }
             highlightedTextSpriteRef.current = textSprite;
         }
-        else console.log("Can't find starname of "+hipNumber);
+        else console.log("Can't find starname of " + hipNumber);
         console.log("Star has been highlighted!");
     }
 
@@ -281,13 +293,33 @@ function Stars({ rotation }) {
             if (!rayCasting) {
                 let closestStarIndex = null;
                 let minDistance = Infinity;
-                const rayOrigin = new THREE.Vector3(0, 0, 0); // Exemple d'origine  
+                const rayOrigin = new THREE.Vector3(0, 0, 0);    // Exemple d'origine  
                 const sphereCenter = new THREE.Vector3(0, 0, 0); // Exemple de centre
                 const sphereRadius = 1000;
 
-                const intersectionPoint = getIntersectionWithSphere(rayOrigin, raycaster.ray.direction.normalize(), sphereCenter, sphereRadius);
+                console.log("Rotation=", rotation);
+
+                const rotationMatrixX = new THREE.Matrix4().makeRotationX(rotation.x);
+                const rotationMatrixY = new THREE.Matrix4().makeRotationY(rotation.y);
+                
+                // Combine les rotations en multipliant d'abord la rotation Y, puis la rotation X
+                const combinedRotationMatrix = new THREE.Matrix4().multiplyMatrices(rotationMatrixX, rotationMatrixY);
+                
+                // Obtenez la matrice de rotation inverse
+                const inverseRotationMatrix = new THREE.Matrix4().getInverse(combinedRotationMatrix);
+                
+                // Appliquez la rotation inverse à la direction du raycaster pour obtenir la direction ajustée
+                const rotatedDirection = raycaster.ray.direction.clone().applyMatrix4(inverseRotationMatrix);
+                
+                // Utilisez cette direction ajustée pour obtenir le point d'intersection avec la sphère
+                const intersectionPoint = getIntersectionWithSphere(rayOrigin, rotatedDirection.normalize(), sphereCenter, sphereRadius);
+                
+
+
                 if (intersectionPoint) {
+
                     console.log(`Intersection point: ${intersectionPoint.x}, ${intersectionPoint.y}, ${intersectionPoint.z}`);
+
                     // Parcourir les étoiles visibles
                     for (let i = 0; i < starsData.vertices.length / 3; i++) {
                         if (starsData.magnitudes[i] <= maxShownMagnitude) {
@@ -359,7 +391,7 @@ function Stars({ rotation }) {
             window.removeEventListener('click', onClick);
             removeDebugRay();
         };
-    }, [starsData, camera, gl, isDebugEnabled]);
+    }, [rotation, starsData, camera, gl, isDebugEnabled]);
 
     return null;
 }

@@ -17,8 +17,8 @@ function CameraControls() {
 
       const sensitivity = 0.005;
 
-      const deltaX = -(event.offsetX - previousMousePosition.x) * sensitivity;
-      const deltaY = -(event.offsetY - previousMousePosition.y) * sensitivity;
+      const deltaX = (event.offsetX - previousMousePosition.x) * sensitivity;
+      const deltaY = (event.offsetY - previousMousePosition.y) * sensitivity;
 
       // Vérifier quelle rotation (horizontale ou verticale) est la plus grande
       if (Math.abs(deltaX) > Math.abs(deltaY)) {
@@ -48,7 +48,7 @@ function CameraControls() {
   useEffect(() => {
     function handleWheel(event) {
       const zoomStep = 0.25;
-      const zoomChange = Math.sign(event.deltaY) * zoomStep;
+      const zoomChange = - Math.sign(event.deltaY) * zoomStep;
       camera.zoom += zoomChange;
       camera.zoom = THREE.MathUtils.clamp(camera.zoom, 1, 10);
       camera.updateProjectionMatrix();
