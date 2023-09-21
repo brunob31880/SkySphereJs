@@ -7,56 +7,59 @@ import { SkyContext } from '../contexts/Skycontext';
  * @param {*} param0 
  * @returns 
  */
-function Constellations({rotation}) {
+function Constellations() {
     const { scene } = useThree();
-    const { starsData, constellationLines } = useContext(SkyContext);
+    const { representation, starsData, constellationLines } = useContext(SkyContext);
 
     // Créez une référence pour le groupe
     const constellationGroupRef = useRef(new THREE.Group());
-
-    useEffect(() => {
-        constellationGroupRef.current.rotation.y = rotation.y;
-        constellationGroupRef.current.rotation.x = rotation.x;
-    }, [rotation]);
-
     useEffect(() => {
         if (!starsData || !constellationLines) return;
 
-        const material = new THREE.LineBasicMaterial({ color: 0xFFFFFF });  // Une ligne blanche pour les constellations
+        // Nettoyer le groupe avant de l'ajouter à nouveau
+        constellationGroupRef.current.children.forEach(child => {
+            console.log("Suppression de ", child);
+            constellationGroupRef.current.remove(child);
+        });
+        scene.remove(constellationGroupRef.current);
+        const material = new THREE.LineBasicMaterial({ color: 0xFFFFFF });
+
+        // Définir la variable positions en fonction de la représentation
+        const positions = representation === 'Horizontal' && starsData.horizontalCoords ? starsData.horizontalCoords : starsData.vertices;
+
         constellationLines.forEach(line => {
             const startStarIndex = starsData.hipToIndex[line.startStar] * 3;
             const endStarIndex = starsData.hipToIndex[line.endStar] * 3;
 
-            //console.log("Start=" + line.startStar + " " + starsData.vertices[startStarIndex] + "," + starsData.vertices[startStarIndex + 1] + "," + starsData.vertices[startStarIndex + 2]);
-            //console.log("End=" + line.endStar + " " + starsData.vertices[endStarIndex] + "," + starsData.vertices[endStarIndex + 1] + "," + starsData.vertices[endStarIndex + 2]);
+            const startStarCoords = new THREE.Vector3(
+                positions[startStarIndex],
+                positions[startStarIndex + 1],
+                positions[startStarIndex + 2]
+            );
 
-            if (starsData.vertices[startStarIndex] !== undefined && starsData.vertices[endStarIndex] !== undefined) {
-                const startStarCoords = new THREE.Vector3(
-                    starsData.vertices[startStarIndex],
-                    starsData.vertices[startStarIndex + 1],
-                    starsData.vertices[startStarIndex + 2]
-                );
+            const endStarCoords = new THREE.Vector3(
+                positions[endStarIndex],
+                positions[endStarIndex + 1],
+                positions[endStarIndex + 2]
+            );
 
-                const endStarCoords = new THREE.Vector3(
-                    starsData.vertices[endStarIndex],
-                    starsData.vertices[endStarIndex + 1],
-                    starsData.vertices[endStarIndex + 2]
-                );
-
-                const geometry = new THREE.BufferGeometry().setFromPoints([startStarCoords, endStarCoords]);
-                const line = new THREE.Line(geometry, material);
-                constellationGroupRef.current.add(line);
-            }
+            const geometry = new THREE.BufferGeometry().setFromPoints([startStarCoords, endStarCoords]);
+            const lineObj = new THREE.Line(geometry, material);
+            constellationGroupRef.current.add(lineObj);
         });
 
-        // Ajoutez le groupe contenant les lignes à la scène
         scene.add(constellationGroupRef.current);
 
         return () => {
+            // Supprimer tous les enfants du groupe
+            while (constellationGroupRef.current.children.length > 0) {
+                constellationGroupRef.current.remove(constellationGroupRef.current.children[0]);
+            } // Supprimer le groupe de la scène
             scene.remove(constellationGroupRef.current);
         };
 
-    }, [starsData, scene, constellationLines]);
+    }, [starsData, scene, constellationLines, representation]);
+
 
     return null;
 }

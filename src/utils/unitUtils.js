@@ -17,5 +17,8 @@ const hmsToRad = (hours, minutes, seconds) => {
 const dmsToRad = (degrees, minutes, seconds) => {
     return degToRad(dmsToDeg(degrees, minutes, seconds));
 }
+function radToDeg(angleInRadians) {
+    return angleInRadians * (180 / Math.PI);
+}
 
-export { degToRad, hmsToDeg, dmsToDeg, hmsToRad, dmsToRad };
+export { radToDeg,degToRad, hmsToDeg, dmsToDeg, hmsToRad, dmsToRad };

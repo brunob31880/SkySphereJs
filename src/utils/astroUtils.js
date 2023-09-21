@@ -1,3 +1,4 @@
+
 import { degToRad,radToDeg } from "three/src/math/MathUtils";
 /**
  * Calcule le temps sidéral local (LST) pour une longitude donnée.
@@ -32,7 +33,7 @@ export function getSiderealTime(longitude) {
  * @param {number} ra - L'ascension droite de l'astre en degrés.
  * @return {number} L'heure angulaire en degrés.
  */
-function calculateHourAngle(lst, ra) {
+export function calculateHourAngle(lst, ra) {
     let H = lst - ra;
 
     // Ajustement pour s'assurer que H est dans l'intervalle [0, 360°] ou [0, -360°].
@@ -52,19 +53,24 @@ function calculateHourAngle(lst, ra) {
  * @param {number} dec - La déclinaison de l'astre en degrés.
  * @param {number} H - L'heure angulaire en degrés.
  * @param {number} latitude - La latitude de l'observateur en degrés.
- * @return {object} Un objet contenant les coordonnées horizontales : azimut (en degrés) et altitude (en degrés).
+ * @return {object} Un objet contenant les coordonnées horizontales : azimut (en radian) et altitude (en radian).
  */
-function equatorialToHorizontal(dec, H, latitude) {
-    // Calculer l'altitude de l'astre
-    const sinAlt = Math.sin(degToRad(dec)) * Math.sin(degToRad(latitude)) + 
-                   Math.cos(degToRad(dec)) * Math.cos(degToRad(latitude)) * Math.cos(degToRad(H));
-    const alt = radToDeg(Math.asin(sinAlt));
+export const equatorialToHorizontal = (dec, H, latitude) => {
+    // Convert all angles to radians
+    const decRad = degToRad(dec);
+    const HRad = degToRad(H);
+    const latRad = degToRad(latitude);
+  
+    // Calculate altitude (h)
+    const h = Math.asin(Math.sin(latRad) * Math.sin(decRad) + Math.cos(latRad) * Math.cos(decRad) * Math.cos(HRad));
     
-    // Calculer l'azimut de l'astre
-    const cosA = (Math.sin(degToRad(dec)) - Math.sin(degToRad(alt)) * Math.sin(degToRad(latitude))) / 
-                 (Math.cos(degToRad(alt)) * Math.cos(degToRad(latitude)));
-    const az = radToDeg(Math.acos(cosA));
-    
-    return { azimuth: az, altitude: alt };
-}
+    // Calculate azimuth (A) using the formula you provided
+    const A = Math.atan2(-Math.cos(decRad) * Math.cos(latRad) * Math.sin(HRad), Math.sin(decRad) - Math.sin(latRad) * Math.sin(h));
+  
+
+    return {
+      azimuth: A,
+      altitude: h
+    };
+  };
 

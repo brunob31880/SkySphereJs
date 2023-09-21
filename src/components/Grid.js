@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 
-function RADECGrid() {
+function Grid() {
     const group = useRef();
 
     useEffect(() => {
@@ -112,4 +112,4 @@ function RADECGrid() {
     return <group ref={group} />;
 }
 
-export default RADECGrid;
+export default Grid;

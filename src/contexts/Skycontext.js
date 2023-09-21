@@ -1,7 +1,7 @@
 // SkyContext.js
 import React, { useState, useEffect } from 'react';
-import { hmsToRad, dmsToRad } from '../utils/unitUtils';
-
+import { radToDeg,hmsToRad, dmsToRad } from '../utils/unitUtils';
+import { getSiderealTime, equatorialToHorizontal, calculateHourAngle } from '../utils/astroUtils'
 const SkyContext = React.createContext();
 
 function SkyProvider({ children }) {
@@ -10,6 +10,7 @@ function SkyProvider({ children }) {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [location, setLocation] = useState({ latitude: null, longitude: null });
     const [starsData, setStarsData] = useState(null);
+    const [horizontalCoords, setHorizontalCoords] = useState(null);
     const [hipToIndex, setHipToIndex] = useState({});
     const [maxShownMagnitude, setMaxShownMagnitude] = useState(6);
     const [constellationLines, setConstellationLines] = useState([]);
@@ -54,6 +55,7 @@ function SkyProvider({ children }) {
 
         return () => clearInterval(interval);
     }, []);
+
     const parseDMS = (dms) => {
         const parts = dms.split(/\s+/);
         return parts.map(part => parseFloat(part));
@@ -63,6 +65,69 @@ function SkyProvider({ children }) {
         const parts = hms.split(/\s+/);
         return parts.map(part => parseFloat(part));
     };
+
+    useEffect(() => {
+        if (starsData && location.latitude && location.longitude) {
+            console.log("Calcul des coordonnées horizontales");
+
+            // Démarrer le chronomètre
+            console.time("Calcul des coordonnées horizontales");
+            let minAzimuth = Infinity;
+            let maxAzimuth = -Infinity;
+            let minAltitude = Infinity;
+            let maxAltitude = -Infinity;
+
+
+            const newAltAzArray = [];
+            const newHorizontalCoords = [];
+
+            starsData.raDec.forEach((raDec) => {
+                const { ra, dec } = raDec;
+                const LST = getSiderealTime(location.longitude);
+                const raInDegrees = radToDeg(ra);
+                const decInDegrees = radToDeg(dec);
+
+                const hourAngle = calculateHourAngle(LST, raInDegrees);
+                const { azimuth, altitude } = equatorialToHorizontal(decInDegrees, hourAngle, location.latitude);
+
+
+
+                // Mettre à jour les valeurs minimales et maximales
+                if (azimuth < minAzimuth) minAzimuth = azimuth;
+                if (azimuth > maxAzimuth) maxAzimuth = azimuth;
+                if (altitude < minAltitude) minAltitude = altitude;
+                if (altitude > maxAltitude) maxAltitude = altitude;
+
+                newAltAzArray.push({ azimuth, altitude }); // Stocker les valeurs d'azimuth et d'altitude
+
+                const x = R * Math.cos(altitude) * Math.cos(azimuth);
+                const z = R * Math.cos(altitude) * Math.sin(azimuth);
+                const y = R * Math.sin(altitude);
+
+                newHorizontalCoords.push(x, y, z);  // Ajouter les coordonnées en séquence
+            });
+
+            // Afficher les valeurs minimales et maximales pour le débogage
+            console.log("Azimuth Range:", minAzimuth, "-", maxAzimuth);
+            console.log("Altitude Range:", minAltitude, "-", maxAltitude);
+
+            // Arrêter le chronomètre et afficher le temps écoulé
+            console.timeEnd("Calcul des coordonnées horizontales");
+
+            setHorizontalCoords(newHorizontalCoords);
+            setStarsData({
+                ...starsData,
+                horizontalCoords: newHorizontalCoords,
+                altAzArray: newAltAzArray  // Ajouter le nouveau tableau altAzArray au contexte
+            });
+        }
+    }, [isLoaded, location]);
+
+
+
+
+
+
     useEffect(() => {
         Promise.all([
             fetch(`${process.env.PUBLIC_URL}/datas/hip.tsv`).then(response => response.text()),
@@ -81,6 +146,8 @@ function SkyProvider({ children }) {
             const coords = [];
             const hipparcosIds = [];
             const newMagnitudes = [];
+            const raDecArray = [];
+
             const RA_INDEX = 1;
             const DEC_INDEX = 2;
             const MAG_INDEX = 3;
@@ -122,12 +189,14 @@ function SkyProvider({ children }) {
                 const x = R * Math.cos(dec) * Math.cos(ra);
                 const z = R * Math.cos(dec) * Math.sin(ra);
                 const y = R * Math.sin(dec);
+
                 // pour deboggage affichage de la position de la polaire
 
                 if (hipNumber === 11767) console.log('Etoile polaire: X=' + x + " Y=" + y + " Z=" + z + " ");
                 if (!isNaN(x) && !isNaN(y) && !isNaN(z)) {
                     coords.push(x, y, z);
                     hipparcosIds.push(hipNumber)
+                    raDecArray.push({ ra, dec });
                 } else {
                     console.error("Problem with HIP=" + parts[0]);
                 }
@@ -173,15 +242,17 @@ function SkyProvider({ children }) {
                     identStars[hipNumber] = starName;
                 }
             });
-
+            console.log("Premières valeurs de raDecArray:", raDecArray.slice(0, 10));
 
             const starsData = {
                 vertices: coords,
                 magnitudes: newMagnitudes,
                 hipToIndex: hipToIndex,
                 hipparcosIds,
-                identStars
+                identStars,
+                raDec: raDecArray
             };
+
             // Stockez les données dans le contexte
             setStarsData(starsData);
             // Traitement de constellationLinesText
@@ -203,7 +274,7 @@ function SkyProvider({ children }) {
     }, []);
 
     return (
-        <SkyContext.Provider value={{ isLoaded, shownConstellations, toggleShownConstellations, maxShownMagnitude, setMaxShownMagnitude, starsData, setStarsData, representation, setRepresentation, currentTime, location, toggleRepresentation, constellationLines, isLoaded }}>
+        <SkyContext.Provider value={{ isLoaded, shownConstellations, toggleShownConstellations, maxShownMagnitude, setMaxShownMagnitude, starsData, setStarsData, representation, setRepresentation, currentTime, location, toggleRepresentation, constellationLines, isLoaded, horizontalCoords, setHorizontalCoords }}>
             {children}
         </SkyContext.Provider>
     );

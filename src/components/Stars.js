@@ -6,12 +6,12 @@ import { SkyContext } from '../contexts/Skycontext';
 /**
  * 
  */
-function Stars({ rotation }) {
+function Stars() {
     const { scene, camera, gl } = useThree();
-    const { maxShownMagnitude, starsData } = useContext(SkyContext);
+    const { shownConstellations, representation, maxShownMagnitude, starsData } = useContext(SkyContext);
 
-    const [isDebugEnabled, setIsDebugEnabled] = useState(true);
-    const hitboxes = useRef([]);
+    const [isDebugEnabled, setIsDebugEnabled] = useState(false);
+
     const highlightedTextSpriteRef = useRef(null);
 
     const starGroupRef = useRef(new THREE.Group());
@@ -21,13 +21,9 @@ function Stars({ rotation }) {
     raycaster.linePrecision = 100;
     const mouse = new THREE.Vector2();
     const rayHelperRef = useRef(null);
-    // detection par lancement de rayon 
-    const rayCasting = false
 
-    useEffect(() => {
-        starGroupRef.current.rotation.y = rotation.y;
-        starGroupRef.current.rotation.x = rotation.x;
-    }, [rotation]);
+
+
 
     useEffect(() => {
         console.log("Debug=" + isDebugEnabled)
@@ -45,7 +41,6 @@ function Stars({ rotation }) {
             rayHelperRef.current.position.copy(raycaster.ray.origin);
         }
     }
-
 
     function removeDebugRay() {
         if (rayHelperRef.current) {
@@ -79,7 +74,16 @@ function Stars({ rotation }) {
         sprite.scale.set(200, 100, 1); // Ajustez la taille selon vos préférences
         return sprite;
     }
-
+    
+    useEffect(() => {
+        if (highlightedStarRef.current) {
+            console.log("Removing previously highlighted star.");
+            starGroupRef.current.remove(highlightedStarRef.current);
+        }
+        if (highlightedTextSpriteRef.current) {
+            starGroupRef.current.remove(highlightedTextSpriteRef.current);
+        }
+    }, [shownConstellations]);
     /**
      * 
      * @param {*} star 
@@ -141,8 +145,26 @@ function Stars({ rotation }) {
     useEffect(() => {
         if (!starsData) return;
 
+        // Vider le groupe d'étoiles
+        while (starGroupRef.current.children.length > 0) {
+            starGroupRef.current.remove(starGroupRef.current.children[0]);
+        }
+
+        // Supprimer l'étoile mise en évidence si elle existe
+        if (highlightedStarRef.current) {
+            starGroupRef.current.remove(highlightedStarRef.current);
+            highlightedStarRef.current = null;
+        }
+
         const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(starsData.vertices, 3));
+        let positions; // Ce tableau contiendra les coordonnées des étoiles
+
+        if (representation === 'Horizontal' && starsData.horizontalCoords) {
+            positions = starsData.horizontalCoords;
+        } else {
+            positions = starsData.vertices;
+        }
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         geometry.setAttribute('magnitude', new THREE.Float32BufferAttribute(starsData.magnitudes, 1));
         geometry.setAttribute('hipparcosId', new THREE.Float32BufferAttribute(starsData.hipparcosIds, 1));
 
@@ -203,29 +225,7 @@ function Stars({ rotation }) {
         const points = new THREE.Points(geometry, shaderMaterial);
         starGroupRef.current.add(points);
 
-        const visibleStarPositions = [];
 
-        for (let i = 0; i < starsData.magnitudes.length; i++) {
-            if (starsData.magnitudes[i] <= maxShownMagnitude) {
-                visibleStarPositions.push(starsData.vertices[i * 3], starsData.vertices[i * 3 + 1], starsData.vertices[i * 3 + 2]);
-            }
-        }
-
-        if (visibleStarPositions.length > 0) {
-            const hitboxMaterial = new THREE.PointsMaterial({ size: 60, transparent: true, opacity: 0 });
-            /*
-            const hitboxMaterial = new THREE.PointsMaterial({
-                size: 60,
-                transparent: true,
-                opacity: 0.5,  // Opacité ajustée pour voir la hitbox
-                color: 0xff0000  // couleur en rouge pour différencier la hitbox
-            });
-            */
-            const hitboxGeometry = new THREE.BufferGeometry();
-            hitboxGeometry.setAttribute('position', new THREE.Float32BufferAttribute(visibleStarPositions, 3));
-            const hitboxes = new THREE.Points(hitboxGeometry, hitboxMaterial);
-            starGroupRef.current.add(hitboxes);
-        }
 
 
         scene.add(starGroupRef.current);
@@ -235,7 +235,7 @@ function Stars({ rotation }) {
         };
 
 
-    }, [starsData, scene, maxShownMagnitude]);
+    }, [representation, starsData, scene, maxShownMagnitude]);
 
 
     useEffect(() => {
@@ -290,99 +290,67 @@ function Stars({ rotation }) {
             mouse.y = -(event.offsetY / gl.domElement.clientHeight) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
 
-            if (!rayCasting) {
-                let closestStarIndex = null;
-                let minDistance = Infinity;
-                const rayOrigin = new THREE.Vector3(0, 0, 0);    // Exemple d'origine  
-                const sphereCenter = new THREE.Vector3(0, 0, 0); // Exemple de centre
-                const sphereRadius = 1000;
-
-                console.log("Rotation=", rotation);
-
-                const rotationMatrixX = new THREE.Matrix4().makeRotationX(rotation.x);
-                const rotationMatrixY = new THREE.Matrix4().makeRotationY(rotation.y);
-                
-                // Combine les rotations en multipliant d'abord la rotation Y, puis la rotation X
-                const combinedRotationMatrix = new THREE.Matrix4().multiplyMatrices(rotationMatrixX, rotationMatrixY);
-                
-                // Obtenez la matrice de rotation inverse
-                const inverseRotationMatrix = new THREE.Matrix4().getInverse(combinedRotationMatrix);
-                
-                // Appliquez la rotation inverse à la direction du raycaster pour obtenir la direction ajustée
-                const rotatedDirection = raycaster.ray.direction.clone().applyMatrix4(inverseRotationMatrix);
-                
-                // Utilisez cette direction ajustée pour obtenir le point d'intersection avec la sphère
-                const intersectionPoint = getIntersectionWithSphere(rayOrigin, rotatedDirection.normalize(), sphereCenter, sphereRadius);
-                
+            let closestStarIndex = null;
+            let minDistance = Infinity;
+            const rayOrigin = new THREE.Vector3(0, 0, 0);    // Exemple d'origine  
+            const sphereCenter = new THREE.Vector3(0, 0, 0); // Exemple de centre
+            const sphereRadius = 1000;
 
 
-                if (intersectionPoint) {
+            const intersectionPoint = getIntersectionWithSphere(rayOrigin, raycaster.ray.direction.normalize(), sphereCenter, sphereRadius);
+            if (isDebugEnabled) addDebugRay();
+            else removeDebugRay();
 
-                    console.log(`Intersection point: ${intersectionPoint.x}, ${intersectionPoint.y}, ${intersectionPoint.z}`);
+            if (intersectionPoint) {
 
-                    // Parcourir les étoiles visibles
-                    for (let i = 0; i < starsData.vertices.length / 3; i++) {
-                        if (starsData.magnitudes[i] <= maxShownMagnitude) {
-                            const starPosition = new THREE.Vector3(
-                                starsData.vertices[i * 3],
-                                starsData.vertices[i * 3 + 1],
-                                starsData.vertices[i * 3 + 2]
-                            );
-                            const distance = starPosition.distanceTo(intersectionPoint);
+                console.log(`Intersection point: ${intersectionPoint.x}, ${intersectionPoint.y}, ${intersectionPoint.z}`);
+                let starPositions;
+                if (representation === 'Horizontal' && starsData.horizontalCoords) {
+                    starPositions = starsData.horizontalCoords;
+                } else {
+                    starPositions = starsData.vertices;
+                }
+                // Parcourir les étoiles visibles
+                for (let i = 0; i < starPositions.length / 3; i++) {
+                    if (starsData.magnitudes[i] <= maxShownMagnitude) {
+                        const starPosition = new THREE.Vector3(
+                            starPositions[i * 3],
+                            starPositions[i * 3 + 1],
+                            starPositions[i * 3 + 2]
+                        );
+                        const distance = starPosition.distanceTo(intersectionPoint);
 
-                            if (distance < minDistance) {
-                                minDistance = distance;
-                                closestStarIndex = i;
-                            }
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            closestStarIndex = i;
                         }
                     }
+                }
 
-                    if (closestStarIndex !== null) {
-                        const hipparcosId = starsData.hipparcosIds[closestStarIndex];
-                        console.log("Etoile la plus proche Hipparcos ID:", hipparcosId);
+                if (closestStarIndex !== null) {
+                    const hipparcosId = starsData.hipparcosIds[closestStarIndex];
+                    console.log("Etoile la plus proche Hipparcos ID:", hipparcosId);
 
-                        // Mettez en surbrillance cette étoile
-                        const star = {
-                            object: {
-                                geometry: {
-                                    attributes: {
-                                        position: new THREE.BufferAttribute(new Float32Array(starsData.vertices), 3),
-                                        hipparcosId: new THREE.BufferAttribute(new Float32Array(starsData.hipparcosIds), 1)
-                                    }
+                    // Mettez en surbrillance cette étoile
+                    const star = {
+                        object: {
+                            geometry: {
+                                attributes: {
+                                    position: new THREE.BufferAttribute(new Float32Array(starPositions), 3),
+                                    hipparcosId: new THREE.BufferAttribute(new Float32Array(starsData.hipparcosIds), 1)
                                 }
-                            },
-                            index: closestStarIndex
-                        };
-                        highlightStar(star);
-                    }
-
-                } else {
-                    console.log("No intersection");
-                }
-            }
-            else {
-                raycaster.far = 1100;
-
-                if (isDebugEnabled) {
-                    addDebugRay();
-                } else {
-                    removeDebugRay();
-                }
-
-                // Filtrer les objets pour ne pas inclure le cercle bleu mis en évidence lors de l'interception
-                const objectsToIntersect = starGroupRef.current.children.filter(obj => obj !== highlightedStarRef.current);
-
-                const intersects = raycaster.intersectObjects(objectsToIntersect, true);
-
-                if (intersects.length > 0) {
-                    console.log("Intersect=", intersects[0])
-                    const star = intersects[0];
-                    const hipparcosIdAttribute = star.object.geometry.attributes.hipparcosId;
-                    const hipparcosId = hipparcosIdAttribute.getX(star.index);
-                    console.log("Intercepted Star Hipparcos ID:", hipparcosId);
+                            }
+                        },
+                        index: closestStarIndex
+                    };
                     highlightStar(star);
                 }
+
+            } else {
+                console.log("No intersection");
             }
+
+
         }
 
         window.addEventListener('click', onClick);
@@ -391,7 +359,7 @@ function Stars({ rotation }) {
             window.removeEventListener('click', onClick);
             removeDebugRay();
         };
-    }, [rotation, starsData, camera, gl, isDebugEnabled]);
+    }, [representation, starsData, camera, gl, isDebugEnabled]);
 
     return null;
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Canvas } from '@react-three/fiber';
-import RADECGrid from './RADECGrid';
+import Grid from './Grid';
 import Horizon from './Horizon';
 import CameraControls from '../CameraControls';
 import Sky from './Sky';
@@ -29,8 +29,8 @@ function SkyDome() {
             {/* Affiche l'horizon. */}
             <Horizon />
 
-            {/* Affiche la grille RA/DEC. */}
-            <RADECGrid />
+            {/* Affiche la grille. */}
+            <Grid />
 
             {/* Affiche les aides pour les axes. */}
             <axesHelper args={[1000]} />
