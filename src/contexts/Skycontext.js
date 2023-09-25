@@ -1,6 +1,6 @@
 // SkyContext.js
 import React, { useState, useEffect } from 'react';
-import { radToDeg,hmsToRad, dmsToRad } from '../utils/unitUtils';
+import { radToDeg, hmsToRad, dmsToRad } from '../utils/unitUtils';
 import { getSiderealTime, equatorialToHorizontal, calculateHourAngle } from '../utils/astroUtils'
 const SkyContext = React.createContext();
 
@@ -132,8 +132,9 @@ function SkyProvider({ children }) {
         Promise.all([
             fetch(`${process.env.PUBLIC_URL}/datas/hip.tsv`).then(response => response.text()),
             fetch(`${process.env.PUBLIC_URL}/datas/constellation_line_hip.csv`).then(response => response.text()),
-            fetch(`${process.env.PUBLIC_URL}/datas/ident4.csv`).then(response => response.text())
-        ]).then(([starsDataText, constellationLinesText, idents]) => {
+            fetch(`${process.env.PUBLIC_URL}/datas/ident4.csv`).then(response => response.text()),
+            fetch(`${process.env.PUBLIC_URL}/datas/constellation_abbréviations.csv`).then(response => response.text())
+        ]).then(([starsDataText, constellationLinesText, idents, abbrevs]) => {
             // Logique pour traiter starsDataText et constellationLinesText
             // Traitement de starsDataText
             let minRA = Infinity;
@@ -250,11 +251,23 @@ function SkyProvider({ children }) {
                 hipToIndex: hipToIndex,
                 hipparcosIds,
                 identStars,
-                raDec: raDecArray
+                raDec: raDecArray,
+                magnitudes: newMagnitudes,
             };
 
             // Stockez les données dans le contexte
             setStarsData(starsData);
+
+
+            const abbreviationToName = {};
+            abbrevs.split('\n').filter(line => line.trim() !== '').forEach(line => {
+                const parts = line.split(',');
+                abbreviationToName[parts[0]] = {
+                    fullName: parts[1],
+                    description: parts[2]
+                };
+            });
+
             // Traitement de constellationLinesText
             const constellationLines = constellationLinesText.split('\n').filter(line => !line.startsWith('#') && line.trim() !== '');
             const parsedLines = constellationLines.map(line => {
@@ -264,7 +277,9 @@ function SkyProvider({ children }) {
                     group: parts[1],
                     abbreviationGroup: parts[2],
                     startStar: parseInt(parts[3]),
-                    endStar: parseInt(parts[4])
+                    endStar: parseInt(parts[4]),
+                    fullName: abbreviationToName[parts[0]] ? abbreviationToName[parts[0]].fullName : '',
+                    description: abbreviationToName[parts[0]] ? abbreviationToName[parts[0]].description : ''
                 };
             });
 

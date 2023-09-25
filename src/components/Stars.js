@@ -1,5 +1,5 @@
 import { useEffect, useRef, useContext, useState } from 'react';
-
+import { radToDeg } from 'three/src/math/MathUtils';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { SkyContext } from '../contexts/Skycontext';
@@ -74,7 +74,7 @@ function Stars() {
         sprite.scale.set(200, 100, 1); // Ajustez la taille selon vos préférences
         return sprite;
     }
-    
+
     useEffect(() => {
         if (highlightedStarRef.current) {
             console.log("Removing previously highlighted star.");
@@ -116,10 +116,18 @@ function Stars() {
 
         starGroupRef.current.add(circle);
         highlightedStarRef.current = circle;
+
         // Récupérez le numéro Hipparcos de l'étoile
         const hipNumber = starsData.hipparcosIds[star.index];
         const starName = starsData.identStars[hipNumber];
 
+
+        const { azimuth, altitude } = starsData.altAzArray[star.index]
+        const { ra, dec } = starsData.raDec[star.index]
+
+        console.log(hipNumber+" "+starName + " Ra=" + radToDeg(ra) + " Dec=" + radToDeg(dec));
+        console.log(hipNumber+" "+starName + " Azimut=" + azimuth + " Altitude=" + altitude);
+        console.log("Magnitude="+starsData.magnitudes[star.index])
         if (starName) {
             const textTexture = createTextTexture(starName);
             const textSprite = createTextSprite(textTexture);
