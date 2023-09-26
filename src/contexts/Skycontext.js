@@ -36,10 +36,24 @@ function SkyProvider({ children }) {
     useEffect(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(position => {
-                setLocation({
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude
-                });
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+    
+                // Utilisez l'API de géocodage inversé de Nominatim pour obtenir le nom de la ville
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const cityName = data.address.city || data.address.town || data.address.village;
+                        setLocation({
+                            latitude: latitude,
+                            longitude: longitude,
+                            cityName: cityName  // Ajoutez le nom de la ville à l'objet location
+                        });
+                    })
+                    .catch(error => {
+                        console.error("Erreur lors de la récupération du nom de la ville:", error);
+                    });
+    
             }, error => {
                 console.error("Erreur de géolocalisation:", error);
             });
@@ -47,6 +61,8 @@ function SkyProvider({ children }) {
             console.error("Géolocalisation non supportée par ce navigateur.");
         }
     }, []);
+    
+
 
     useEffect(() => {
         const interval = setInterval(() => {

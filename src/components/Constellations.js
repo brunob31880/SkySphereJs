@@ -17,16 +17,30 @@ function Constellations() {
 
     function createTextTexture(text) {
         const canvas = document.createElement('canvas');
-        canvas.width = 256;
-        canvas.height = 256;
         const context = canvas.getContext('2d');
+        
+        context.font = '24px Arial';
+        const textWidth = context.measureText(text).width;
+        const textHeight = 24; // Approximation basée sur la taille de la fonte
+    
+        canvas.width = textWidth + 10; // Ajoutez une petite marge
+        canvas.height = textHeight + 10; // Ajoutez une petite marge
+    
+        // Remplissez le canvas avec une couleur transparente
+        context.fillStyle = 'rgba(0,0,0,0)';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+    
+        // Configurations pour le texte
         context.fillStyle = '#FFFFFF';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
         context.font = '24px Arial';
         context.fillText(text, canvas.width / 2, canvas.height / 2);
+    
         return new THREE.CanvasTexture(canvas);
     }
+    
+
 
 
     useEffect(() => {
@@ -78,17 +92,25 @@ function Constellations() {
             barycenter.count += 2;
         });
         // Création des labels pour chaque barycentre
+
         for (const fullName in barycenters) {
             const barycenter = barycenters[fullName];
             const position = barycenter.sum.divideScalar(barycenter.count);
 
             const textTexture = createTextTexture(fullName);
-            const spriteMaterial = new THREE.SpriteMaterial({ map: textTexture });
+            const spriteMaterial = new THREE.SpriteMaterial({ map: textTexture, transparent: true });
             const sprite = new THREE.Sprite(spriteMaterial);
-            sprite.position.copy(position);
-            sprite.scale.set(500, 300, 1); // Ajustez la taille selon vos besoins
+            // Normalisez la position pour obtenir un vecteur directionnel.
+            const directionVector = position.clone().normalize();
+            // Multipliez le vecteur directionnel par une distance souhaitée.
+            const offset = directionVector.multiplyScalar(0.5); // Ajustez le scalaire selon la distance souhaitée
+            // Ajoutez ce déplacement à la position d'origine du sprite.
+            sprite.position.copy(position).add(offset);
+
+            sprite.scale.set(200, 100, 1); // Ajustez la taille selon vos besoins
             constellationGroupRef.current.add(sprite);
         }
+
         scene.add(constellationGroupRef.current);
 
         return () => {

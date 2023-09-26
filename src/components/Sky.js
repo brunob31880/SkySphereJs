@@ -1,4 +1,4 @@
-import React, { useEffect,useContext } from 'react';
+import React, { useEffect, useContext } from 'react';
 import Stars from './Stars';
 import Constellations from './Constellations';
 import * as THREE from 'three';
@@ -9,22 +9,22 @@ import { SkyContext } from '../contexts/Skycontext';
  * @returns 
  */
 function Sky() {
-    const { shownConstellations,representation,location } = useContext(SkyContext);
+    const { shownConstellations, representation, location } = useContext(SkyContext);
 
     useEffect(() => {
-        console.log("Changement de Representation")      
+        console.log("Changement de Representation")
     }, [representation, location]);
 
     useEffect(() => {
-        console.log("Changement de Location")   
+        console.log("Changement de Location")
     }, [location]);
 
     return (
         <>
-            {/* Affiche les étoiles. */}
-            <Stars/>
             {/* Affiche les constellations. */}
-            {shownConstellations==="Oui" && <Constellations/>}
+            {shownConstellations === "Oui" && <Constellations />}
+            {/* Affiche les étoiles. */}
+            <Stars />
         </>
     );
 }

@@ -15,8 +15,8 @@ function Header({deviceType}) {
           {deviceType !== "mobile" && <h1 className="header-title">SkySphereJS</h1>}
             <div className="right-section">
                 <span className="location">
-                    {location.latitude && location.longitude ?
-                        `Lat: ${location.latitude.toFixed(2)}, Long: ${location.longitude.toFixed(2)}` :
+                    {location.latitude && location.longitude && location.cityName?
+                        `Lat: ${location.latitude.toFixed(2)}, Long: ${location.longitude.toFixed(2)}, ${location.cityName}` :
                         "Localisation non disponible"}
                 </span>
                 <span className="time"> {currentTime.toLocaleTimeString()} UTC {offsetHours >= 0 ? '+' : ''}{offsetHours}</span>

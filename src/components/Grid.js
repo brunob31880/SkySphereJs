@@ -10,13 +10,13 @@ function Grid() {
         const increment = 360 / numDivisions;
 
         const dashMaterialRA = new THREE.LineDashedMaterial({
-            color: 0x00ff00,
+            color: 0x684f4f,
             dashSize: 10,
             gapSize: 5
         });
 
         const dashMaterialDEC = new THREE.LineDashedMaterial({
-            color: 0x0000ff,
+            color: 0x684f4f,
             dashSize: 10,
             gapSize: 5
         });
@@ -63,7 +63,7 @@ function Grid() {
                 });
 
                 // Étape 3: Positionnez le texte sur la sphère
-                const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });  // Couleur du texte, ajustez selon vos besoins
+                const textMaterial = new THREE.MeshBasicMaterial({ color: 0x684f4f });  // Couleur du texte, ajustez selon vos besoins
                 const textMesh = new THREE.Mesh(textGeom, textMaterial);
 
                 const radius = 1000;

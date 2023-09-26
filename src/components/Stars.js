@@ -56,10 +56,9 @@ function Stars() {
     function createTextTexture(text) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-
         ctx.font = '58px Arial'; // Modifiez selon vos préférences
         ctx.fillStyle = "blue";
-        ctx.fillText(text, 0, 58);
+        ctx.fillText(text.replace("_"," "), 0, 58);
         const texture = new THREE.CanvasTexture(canvas);
         return texture;
     }
@@ -89,6 +88,16 @@ function Stars() {
      * @param {*} star 
      */
     function highlightStar(star) {
+        if (!star) {
+            console.log("Star is undefined");
+            return;
+        }
+
+        if (!starsData || !starsData.altAzArray) {
+            console.log("starsData or starsData.altAzArray is undefined");
+            return;
+        }
+
         console.log("Highlight Star Function Called");
 
         if (highlightedStarRef.current) {
@@ -125,9 +134,9 @@ function Stars() {
         const { azimuth, altitude } = starsData.altAzArray[star.index]
         const { ra, dec } = starsData.raDec[star.index]
 
-        console.log(hipNumber+" "+starName + " Ra=" + radToDeg(ra) + " Dec=" + radToDeg(dec));
-        console.log(hipNumber+" "+starName + " Azimut=" + azimuth + " Altitude=" + altitude);
-        console.log("Magnitude="+starsData.magnitudes[star.index])
+        console.log(hipNumber + " " + starName + " Ra=" + radToDeg(ra) + " Dec=" + radToDeg(dec));
+        console.log(hipNumber + " " + starName + " Azimut=" + azimuth + " Altitude=" + altitude);
+        console.log("Magnitude=" + starsData.magnitudes[star.index])
         if (starName) {
             const textTexture = createTextTexture(starName);
             const textSprite = createTextSprite(textTexture);
