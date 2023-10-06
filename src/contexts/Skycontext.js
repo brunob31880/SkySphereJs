@@ -44,7 +44,7 @@ function SkyProvider({ children }) {
             navigator.geolocation.getCurrentPosition(position => {
                 const latitude = position.coords.latitude;
                 const longitude = position.coords.longitude;
-    
+
                 // Utilisez l'API de géocodage inversé de Nominatim pour obtenir le nom de la ville
                 fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`)
                     .then(response => response.json())
@@ -59,7 +59,7 @@ function SkyProvider({ children }) {
                     .catch(error => {
                         console.error("Erreur lors de la récupération du nom de la ville:", error);
                     });
-    
+
             }, error => {
                 console.error("Erreur de géolocalisation:", error);
             });
@@ -67,22 +67,27 @@ function SkyProvider({ children }) {
             console.error("Géolocalisation non supportée par ce navigateur.");
         }
     }, []);
-    
+
+    function isSafari() {
+        return /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    }
 
     useEffect(() => {
-        const handleOrientation = (event) => {
-            const { alpha, beta, gamma } = event;
-            setOrientation({ alpha, beta, gamma });
-        };
-    
-        window.addEventListener('deviceorientation', handleOrientation);
-    
-        return () => {
-            // Assurez-vous de retirer l'écouteur d'événements lorsque le composant est démonté
-            window.removeEventListener('deviceorientation', handleOrientation);
-        };
+        if (!isSafari()) {
+            const handleOrientation = (event) => {
+                const { alpha, beta, gamma } = event;
+                setOrientation({ alpha, beta, gamma });
+            };
+
+            window.addEventListener('deviceorientation', handleOrientation);
+
+            return () => {
+                window.removeEventListener('deviceorientation', handleOrientation);
+            };
+        }
     }, []);
-    
+
+
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentTime(new Date());
@@ -253,8 +258,13 @@ function SkyProvider({ children }) {
             // Vérifier la gamme de magnitudes
             const validMagnitudes = newMagnitudes.filter(mag => !isNaN(mag));
 
-            const minMagnitude = Math.min(...validMagnitudes);
-            const maxMagnitude = Math.max(...validMagnitudes);
+            const { minMagnitude, maxMagnitude } = validMagnitudes.reduce((acc, value) => {
+                return {
+                    minMagnitude: Math.min(acc.minMagnitude, value),
+                    maxMagnitude: Math.max(acc.maxMagnitude, value)
+                };
+            }, { minMagnitude: Infinity, maxMagnitude: -Infinity });
+            
             console.log("Magnitude Range:", minMagnitude, "-", maxMagnitude);
 
             const identStars = {};
@@ -324,7 +334,7 @@ function SkyProvider({ children }) {
     }, []);
 
     return (
-        <SkyContext.Provider value={{ isDebugEnabled, setIsDebugEnabled,isLoaded, shownConstellations, toggleShownConstellations, maxShownMagnitude, setMaxShownMagnitude, starsData, setStarsData, representation, setRepresentation, currentTime, location, toggleRepresentation, constellationLines, isLoaded, horizontalCoords, setHorizontalCoords }}>
+        <SkyContext.Provider value={{ orientation, isDebugEnabled, setIsDebugEnabled, isLoaded, shownConstellations, toggleShownConstellations, maxShownMagnitude, setMaxShownMagnitude, starsData, setStarsData, representation, setRepresentation, currentTime, location, toggleRepresentation, constellationLines, isLoaded, horizontalCoords, setHorizontalCoords }}>
             {children}
         </SkyContext.Provider>
     );
