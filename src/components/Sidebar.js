@@ -37,6 +37,7 @@ function Sidebar() {
                     onChange={handleSliderChange}
                 />
             </div>
+            <p className="debug-info">Appuyez sur <strong>d</strong> pour passer en mode debug.</p>
         </div>
     );
 }

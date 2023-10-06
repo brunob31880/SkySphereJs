@@ -56,3 +56,9 @@
 .toggle-btn.off .toggle-indicator {
     left: 1px;
 }
+
+.debug-info {
+    margin-top: 20px;
+    font-style: italic;
+    color: #888;
+}

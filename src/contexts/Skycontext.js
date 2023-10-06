@@ -3,8 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { radToDeg, hmsToRad, dmsToRad } from '../utils/unitUtils';
 import { getSiderealTime, equatorialToHorizontal, calculateHourAngle } from '../utils/astroUtils'
 const SkyContext = React.createContext();
-
+/**
+ * 
+ * @param {*} param0 
+ * @returns 
+ */
 function SkyProvider({ children }) {
+    const [isDebugEnabled, setIsDebugEnabled] = useState(false);
+    const [orientation, setOrientation] = useState({ alpha: 0, beta: 0, gamma: 0 });
     const [representation, setRepresentation] = useState("Equatorial");
     const [shownConstellations, setShownConstellations] = useState("Oui");
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -63,7 +69,20 @@ function SkyProvider({ children }) {
     }, []);
     
 
-
+    useEffect(() => {
+        const handleOrientation = (event) => {
+            const { alpha, beta, gamma } = event;
+            setOrientation({ alpha, beta, gamma });
+        };
+    
+        window.addEventListener('deviceorientation', handleOrientation);
+    
+        return () => {
+            // Assurez-vous de retirer l'écouteur d'événements lorsque le composant est démonté
+            window.removeEventListener('deviceorientation', handleOrientation);
+        };
+    }, []);
+    
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentTime(new Date());
@@ -305,7 +324,7 @@ function SkyProvider({ children }) {
     }, []);
 
     return (
-        <SkyContext.Provider value={{ isLoaded, shownConstellations, toggleShownConstellations, maxShownMagnitude, setMaxShownMagnitude, starsData, setStarsData, representation, setRepresentation, currentTime, location, toggleRepresentation, constellationLines, isLoaded, horizontalCoords, setHorizontalCoords }}>
+        <SkyContext.Provider value={{ isDebugEnabled, setIsDebugEnabled,isLoaded, shownConstellations, toggleShownConstellations, maxShownMagnitude, setMaxShownMagnitude, starsData, setStarsData, representation, setRepresentation, currentTime, location, toggleRepresentation, constellationLines, isLoaded, horizontalCoords, setHorizontalCoords }}>
             {children}
         </SkyContext.Provider>
     );

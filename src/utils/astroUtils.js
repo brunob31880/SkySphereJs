@@ -1,5 +1,7 @@
 
 import { degToRad,radToDeg } from "three/src/math/MathUtils";
+import * as THREE from 'three';
+
 /**
  * Calcule le temps sidéral local (LST) pour une longitude donnée.
  * 
@@ -74,3 +76,31 @@ export const equatorialToHorizontal = (dec, H, latitude) => {
     };
   };
 
+
+ export function getIntersectionWithSphere(rayOrigin, rayDirection, sphereCenter, sphereRadius) {
+    // Calcul des coefficients a, b et c pour l'équation quadratique
+    const oc = new THREE.Vector3().subVectors(rayOrigin, sphereCenter);
+
+    const a = rayDirection.dot(rayDirection);
+    const b = 2.0 * oc.dot(rayDirection);
+    const c = oc.dot(oc) - sphereRadius * sphereRadius;
+
+    const discriminant = b * b - 4 * a * c;
+
+    if (discriminant < 0) {
+        return null; // Pas d'intersection
+    } else {
+        // On utilise t1 comme point d'intersection car c'est le point le plus proche
+        const t1 = (-b - Math.sqrt(discriminant)) / (2.0 * a);
+        const t2 = (-b + Math.sqrt(discriminant)) / (2.0 * a);
+
+        // Si t1 est négatif, alors le début du rayon est à l'intérieur de la sphère
+        const t = t1 > 0 ? t1 : t2;
+
+        return new THREE.Vector3(
+            rayOrigin.x + t * rayDirection.x,
+            rayOrigin.y + t * rayDirection.y,
+            rayOrigin.z + t * rayDirection.z
+        );
+    }
+}

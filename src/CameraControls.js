@@ -4,11 +4,15 @@ import * as THREE from 'three';
 import { Html } from '@react-three/drei';
 import { SkyContext } from './contexts/Skycontext';
 import { useContext } from 'react';
-
+import { getIntersectionWithSphere } from './utils/astroUtils';
+/**
+ * 
+ * @returns 
+ */
 function CameraControls() {
   const [previousMousePosition, setPreviousMousePosition] = useState({ x: 0, y: 0 });
   const [isMouseDown, setIsMouseDown] = useState(false);
-  const { isLoaded } = useContext(SkyContext);
+  const { isDebugEnabled,isLoaded } = useContext(SkyContext);
   const { camera, gl, size } = useThree();
 
   useEffect(() => {
@@ -49,10 +53,33 @@ function CameraControls() {
     function handleWheel(event) {
       const zoomStep = 0.25;
       const zoomChange = - Math.sign(event.deltaY) * zoomStep;
+  
+      const mouse = new THREE.Vector2(
+          (event.offsetX / gl.domElement.clientWidth) * 2 - 1,
+          -(event.offsetY / gl.domElement.clientHeight) * 2 + 1
+      );
+  
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, camera);
+  
+      const sphereCenter = new THREE.Vector3(0, 0, 0); 
+      const sphereRadius = 1000;
+  
+      const intersectionPoint = getIntersectionWithSphere(camera.position, raycaster.ray.direction.normalize(), sphereCenter, sphereRadius);
+  
+      if (intersectionPoint) {
+          // Faites que la caméra regarde vers le point d'intersection
+          camera.lookAt(intersectionPoint);
+      }
+  
+      // Modifiez le zoom de la caméra comme auparavant
       camera.zoom += zoomChange;
       camera.zoom = THREE.MathUtils.clamp(camera.zoom, 1, 10);
       camera.updateProjectionMatrix();
-    }
+  }
+  
+
+
 
     const canvas = gl.domElement;
     canvas.addEventListener('wheel', handleWheel);
@@ -125,26 +152,38 @@ function CameraControls() {
     camera.updateProjectionMatrix();
   }, []);
 
+  const viewDirection = new THREE.Vector3();
+  camera.getWorldDirection(viewDirection);
+
+  const distance = 0.5;  // ajustez cette valeur en fonction de la taille de votre scène
+  const offset = viewDirection.multiplyScalar(distance);
+
+  const htmlPosition = new THREE.Vector3().addVectors(camera.position, offset);
+
+
   return (
     <>
-      <Html>
-        <div style={{
-          position: 'absolute',
-          top: -200,
-          left: -200,
-          color: 'white',
-          display: 'flex',
-          flexDirection: 'row',
-          gap: '20px',
-          width: '600px'
-        }}>
-          <span>Zoom: {camera.zoom.toFixed(2)}</span>
-          <span>Position: {camera.position.x.toFixed(2)}, {camera.position.y.toFixed(2)}, {camera.position.z.toFixed(2)}</span>
-          <span>LookAt: {camera.getWorldDirection(new THREE.Vector3()).x.toFixed(2)}, {camera.getWorldDirection(new THREE.Vector3()).y.toFixed(2)}, {camera.getWorldDirection(new THREE.Vector3()).z.toFixed(2)}</span>
-        </div>
-      </Html>
+      {isDebugEnabled && (
+        <Html position={htmlPosition.toArray()}>
+          <div style={{
+            position: 'absolute',
+            top: -200,
+            left: -200,
+            color: 'red',
+            display: 'flex',
+            flexDirection: 'row',
+            gap: '20px',
+            width: '600px'
+          }}>
+            <span>Zoom: {camera.zoom.toFixed(2)}</span>
+            <span>Position: {camera.position.x.toFixed(2)}, {camera.position.y.toFixed(2)}, {camera.position.z.toFixed(2)}</span>
+            <span>View Direction: {viewDirection.x.toFixed(2)}, {viewDirection.y.toFixed(2)}, {viewDirection.z.toFixed(2)}</span>
+          </div>
+        </Html>
+      )}
     </>
   );
+  
 }
 
 export default CameraControls;
