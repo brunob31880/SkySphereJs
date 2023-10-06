@@ -1,10 +1,36 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect,useState } from 'react';
 import * as THREE from 'three';
-
+import { useThree } from '@react-three/fiber';
+/**
+ * 
+ * @returns 
+ */
 function Grid() {
     const group = useRef();
+    const { camera, gl, size } = useThree();
+    const [font, setFont] = useState(null);
+
+    const clearGroup = () => {
+        for (let i = group.current.children.length - 1; i >= 0; i--) {
+            const child = group.current.children[i];
+            group.current.remove(child);
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) child.material.dispose();
+        }
+    };
+    // Charger la police une seule fois
+    useEffect(() => {
+          // Étape 1: Chargez une police
+        const fontLoader = new THREE.FontLoader();
+        fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', loadedFont => {
+            console.log("Police chargée");
+            setFont(loadedFont);
+        });
+    }, []);
 
     useEffect(() => {
+        if (!font) return;  // Assurez-vous que la police est chargée
+        clearGroup();
         const segments = 64;
         const numDivisions = 36;  // Par exemple, pour 36 divisions
         const increment = 360 / numDivisions;
@@ -35,10 +61,10 @@ function Grid() {
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             return geometry;
         };
-        // Étape 1: Chargez une police
-        const fontLoader = new THREE.FontLoader();
+      
+     //   const fontLoader = new THREE.FontLoader();
 
-        fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+      //  fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
             for (let ra = 0; ra < 360; ra += increment) {
                 const circGeom = createCircleGeometry(1000);
 
@@ -54,13 +80,17 @@ function Grid() {
                 circ.layers.set(1);
                 group.current.add(circ);
                 // Étape 2: Créez une TextGeometry pour chaque valeur de 'ra'
+                const baseSize = 30;
+                const adjustedSize = baseSize / camera.zoom;
+
                 const textGeom = new THREE.TextGeometry(String(ra), {
                     font: font,
-                    size: 40,  // Ajustez selon vos besoins
-                    height: 5, // Ajustez selon vos besoins
+                    size: adjustedSize,
+                    height: 5,
                     curveSegments: 12,
                     bevelEnabled: false,
                 });
+
 
                 // Étape 3: Positionnez le texte sur la sphère
                 const textMaterial = new THREE.MeshBasicMaterial({ color: 0x684f4f });  // Couleur du texte, ajustez selon vos besoins
@@ -85,20 +115,24 @@ function Grid() {
                 circ.layers.set(1);
                 group.current.add(circ);
                 // Étape 2: Créez une TextGeometry pour chaque valeur de 'dec'
+                const baseSize = 30;
+                const adjustedSize = baseSize / camera.zoom;
+
                 const textGeom = new THREE.TextGeometry(String(dec), {
                     font: font,
-                    size: 40,  // Taille du texte, ajustez selon vos besoins
-                    height: 5, // Profondeur du texte, ajustez selon vos besoins
+                    size: adjustedSize,
+                    height: 5,
                     curveSegments: 12,
                     bevelEnabled: false,
                 });
 
+
                 // Étape 3: Positionnez le texte sur la sphère
-                const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });  // Couleur du texte, ajustez selon vos besoins
+                const textMaterial = new THREE.MeshBasicMaterial({ color: 0x684f4f });  // Couleur du texte, ajustez selon vos besoins
                 const textMesh = new THREE.Mesh(textGeom, textMaterial);
 
                 const radius = 1000;
-                textMesh.position.x = radius *  Math.cos(THREE.MathUtils.degToRad(dec));
+                textMesh.position.x = radius * Math.cos(THREE.MathUtils.degToRad(dec));
                 textMesh.position.y = radius * Math.sin(THREE.MathUtils.degToRad(dec));
                 textMesh.position.z = 0
 
@@ -106,8 +140,8 @@ function Grid() {
                 group.current.add(textMesh);
             }
 
-        })
-    }, []);
+    //    })
+    }, [camera.zoom,font]);
 
     return <group ref={group} />;
 }

@@ -9,7 +9,7 @@ import { getIntersectionWithSphere } from '../utils/astroUtils';
  */
 function Stars() {
     const { scene, camera, gl } = useThree();
-    const { isDebugEnabled, setIsDebugEnabled,shownConstellations, representation, maxShownMagnitude, starsData } = useContext(SkyContext);   
+    const { isDebugEnabled, setIsDebugEnabled, shownConstellations, representation, maxShownMagnitude, starsData } = useContext(SkyContext);
     const highlightedTextSpriteRef = useRef(null);
     const starGroupRef = useRef(new THREE.Group());
     const highlightedStarRef = useRef(null);
@@ -18,8 +18,18 @@ function Stars() {
     raycaster.linePrecision = 100;
     const mouse = new THREE.Vector2();
     const rayHelperRef = useRef(null);
+    const [font, setFont] = useState(null);
 
 
+    // Charger la police une seule fois
+    useEffect(() => {
+        // Étape 1: Chargez une police
+        const fontLoader = new THREE.FontLoader();
+        fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', loadedFont => {
+            console.log("Police chargée");
+            setFont(loadedFont);
+        });
+    }, []);
 
 
     useEffect(() => {
@@ -45,31 +55,6 @@ function Stars() {
             rayHelperRef.current = null;
         }
     }
-    /**
-     * 
-     * @param {*} text 
-     * @returns 
-     */
-    function createTextTexture(text) {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        ctx.font = '58px Arial'; // Modifiez selon vos préférences
-        ctx.fillStyle = "blue";
-        ctx.fillText(text.replace("_", " "), 0, 58);
-        const texture = new THREE.CanvasTexture(canvas);
-        return texture;
-    }
-    /**
-     * 
-     * @param {*} texture 
-     * @returns 
-     */
-    function createTextSprite(texture) {
-        const spriteMaterial = new THREE.SpriteMaterial({ map: texture, color: 0x0000ff });
-        const sprite = new THREE.Sprite(spriteMaterial);
-        sprite.scale.set(200, 100, 1); // Ajustez la taille selon vos préférences
-        return sprite;
-    }
 
     useEffect(() => {
         if (highlightedStarRef.current) {
@@ -85,6 +70,7 @@ function Stars() {
      * @param {*} star 
      */
     function highlightStar(star) {
+        if (!font) return;
         if (!star) {
             console.log("Star is undefined");
             return;
@@ -134,22 +120,34 @@ function Stars() {
         console.log(hipNumber + " " + starName + " Ra=" + radToDeg(ra) + " Dec=" + radToDeg(dec));
         console.log(hipNumber + " " + starName + " Azimut=" + azimuth + " Altitude=" + altitude);
         console.log("Magnitude=" + starsData.magnitudes[star.index])
+        const baseSize = 40;
+        const adjustedSize = baseSize / camera.zoom;
         if (starName) {
-            const textTexture = createTextTexture(starName);
-            const textSprite = createTextSprite(textTexture);
+            const textGeom = new THREE.TextGeometry(starName.replace("_", " "), {
+                font: font,
+                size: adjustedSize,  
+                height: 0.1,
+                curveSegments: 12,
+                bevelEnabled: false
+            });
+            const textMaterial = new THREE.MeshBasicMaterial({ color: 0x0000FF });
+            const textMesh = new THREE.Mesh(textGeom, textMaterial);
 
-            // Positionnez le sprite à côté du cercle
-            textSprite.position.copy(vertex);
-            textSprite.position.x -= 70;
-            textSprite.position.y -= 70;
-            // Ajoutez le sprite au groupe d'étoiles
-            starGroupRef.current.add(textSprite);
+            // Positionnez et ajoutez le texte à votre groupe
+            textMesh.position.copy(vertex);
+            textMesh.position.x -= 70;
+            textMesh.position.y -= 70;
 
-            // Si un sprite précédent a été mis en évidence, retirez-le
+            // Utilisez la méthode lookAt pour orienter le texte vers la caméra
+            textMesh.lookAt(camera.position);
+
+            starGroupRef.current.add(textMesh)
+
+            // Si un texte précédent a été mis en évidence, retirez-le
             if (highlightedTextSpriteRef.current) {
                 starGroupRef.current.remove(highlightedTextSpriteRef.current);
             }
-            highlightedTextSpriteRef.current = textSprite;
+            highlightedTextSpriteRef.current = textMesh;
         }
         else console.log("Can't find starname of " + hipNumber);
         console.log("Star has been highlighted!");
@@ -249,7 +247,7 @@ function Stars() {
         };
 
 
-    }, [representation, starsData, scene, maxShownMagnitude]);
+    }, [camera.zoom, representation, starsData, scene, maxShownMagnitude]);
 
 
     useEffect(() => {

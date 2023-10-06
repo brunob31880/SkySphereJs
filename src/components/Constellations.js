@@ -1,4 +1,4 @@
-import { useEffect, useRef, useContext } from 'react';
+import { useEffect, useRef, useContext, useState } from 'react';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { SkyContext } from '../contexts/Skycontext';
@@ -9,43 +9,30 @@ import { SkyContext } from '../contexts/Skycontext';
  * @returns 
  */
 function Constellations() {
-    const { scene } = useThree();
+    const { camera, scene } = useThree();
     const { representation, starsData, constellationLines } = useContext(SkyContext);
 
     // Créez une référence pour le groupe
     const constellationGroupRef = useRef(new THREE.Group());
+    const [font, setFont] = useState(null);
 
-    function createTextTexture(text) {
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        
-        context.font = '24px Arial';
-        const textWidth = context.measureText(text).width;
-        const textHeight = 24; // Approximation basée sur la taille de la fonte
-    
-        canvas.width = textWidth + 10; // Ajoutez une petite marge
-        canvas.height = textHeight + 10; // Ajoutez une petite marge
-    
-        // Remplissez le canvas avec une couleur transparente
-        context.fillStyle = 'rgba(0,0,0,0)';
-        context.fillRect(0, 0, canvas.width, canvas.height);
-    
-        // Configurations pour le texte
-        context.fillStyle = '#FFFFFF';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.font = '24px Arial';
-        context.fillText(text, canvas.width / 2, canvas.height / 2);
-    
-        return new THREE.CanvasTexture(canvas);
-    }
-    
 
+
+
+    // Charger la police une seule fois
+    useEffect(() => {
+        // Étape 1: Chargez une police
+        const fontLoader = new THREE.FontLoader();
+        fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', loadedFont => {
+            console.log("Police chargée");
+            setFont(loadedFont);
+        });
+    }, []);
 
 
     useEffect(() => {
         if (!starsData || !constellationLines) return;
-
+        if (!font) return;  // Assurez-vous que la police est chargée
         // Nettoyer le groupe avant de l'ajouter à nouveau
         constellationGroupRef.current.children.forEach(child => {
             console.log("Suppression de ", child);
@@ -96,19 +83,29 @@ function Constellations() {
         for (const fullName in barycenters) {
             const barycenter = barycenters[fullName];
             const position = barycenter.sum.divideScalar(barycenter.count);
+            const baseSize = 40;
+            const adjustedSize = baseSize / camera.zoom;
+            // Créer une TextGeometry avec le nom complet de la constellation
+            const textGeom = new THREE.TextGeometry(fullName, {
+                font: font,
+                size: adjustedSize,
+                height: 0.1,
+                curveSegments: 12,
+                bevelEnabled: false
+            });
 
-            const textTexture = createTextTexture(fullName);
-            const spriteMaterial = new THREE.SpriteMaterial({ map: textTexture, transparent: true });
-            const sprite = new THREE.Sprite(spriteMaterial);
-            // Normalisez la position pour obtenir un vecteur directionnel.
-            const directionVector = position.clone().normalize();
-            // Multipliez le vecteur directionnel par une distance souhaitée.
-            const offset = directionVector.multiplyScalar(0.5); // Ajustez le scalaire selon la distance souhaitée
-            // Ajoutez ce déplacement à la position d'origine du sprite.
-            sprite.position.copy(position).add(offset);
+            const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const textMesh = new THREE.Mesh(textGeom, textMaterial);
 
-            sprite.scale.set(200, 100, 1); // Ajustez la taille selon vos besoins
-            constellationGroupRef.current.add(sprite);
+            // Positionnez et ajoutez le texte à votre groupe
+            textMesh.position.copy(position);
+
+            // Ajustez la position, l'orientation et l'échelle si nécessaire
+            // par exemple, vous voudrez peut-être que le texte regarde vers le centre de la scène :
+            textMesh.lookAt(new THREE.Vector3(0, 0, 0));
+
+            constellationGroupRef.current.add(textMesh);
+
         }
 
         scene.add(constellationGroupRef.current);
@@ -121,7 +118,7 @@ function Constellations() {
             scene.remove(constellationGroupRef.current);
         };
 
-    }, [starsData, scene, constellationLines, representation]);
+    }, [camera.zoom, starsData, scene, constellationLines, representation, font]);
 
 
     return null;

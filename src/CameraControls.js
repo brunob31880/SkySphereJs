@@ -77,8 +77,6 @@ function CameraControls() {
       camera.zoom = THREE.MathUtils.clamp(camera.zoom, 1, 10);
       camera.updateProjectionMatrix();
   }
-  
-
 
 
     const canvas = gl.domElement;
