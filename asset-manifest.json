@@ -1,20 +1,20 @@
 {
   "files": {
-    "main.css": "/SkySphereJs/static/css/main.f2b246c5.chunk.css",
-    "main.js": "/SkySphereJs/static/js/main.b203485c.chunk.js",
-    "main.js.map": "/SkySphereJs/static/js/main.b203485c.chunk.js.map",
+    "main.css": "/SkySphereJs/static/css/main.6ceebedc.chunk.css",
+    "main.js": "/SkySphereJs/static/js/main.965ddaee.chunk.js",
+    "main.js.map": "/SkySphereJs/static/js/main.965ddaee.chunk.js.map",
     "runtime-main.js": "/SkySphereJs/static/js/runtime-main.2423bb56.js",
     "runtime-main.js.map": "/SkySphereJs/static/js/runtime-main.2423bb56.js.map",
     "static/js/2.c2f78674.chunk.js": "/SkySphereJs/static/js/2.c2f78674.chunk.js",
     "static/js/2.c2f78674.chunk.js.map": "/SkySphereJs/static/js/2.c2f78674.chunk.js.map",
     "index.html": "/SkySphereJs/index.html",
-    "static/css/main.f2b246c5.chunk.css.map": "/SkySphereJs/static/css/main.f2b246c5.chunk.css.map",
+    "static/css/main.6ceebedc.chunk.css.map": "/SkySphereJs/static/css/main.6ceebedc.chunk.css.map",
     "static/js/2.c2f78674.chunk.js.LICENSE.txt": "/SkySphereJs/static/js/2.c2f78674.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.2423bb56.js",
     "static/js/2.c2f78674.chunk.js",
-    "static/css/main.f2b246c5.chunk.css",
-    "static/js/main.b203485c.chunk.js"
+    "static/css/main.6ceebedc.chunk.css",
+    "static/js/main.965ddaee.chunk.js"
   ]
 }
