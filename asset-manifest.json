@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/SkySphereJs/static/css/main.6ceebedc.chunk.css",
-    "main.js": "/SkySphereJs/static/js/main.54bf1fa3.chunk.js",
-    "main.js.map": "/SkySphereJs/static/js/main.54bf1fa3.chunk.js.map",
+    "main.js": "/SkySphereJs/static/js/main.47b2e73e.chunk.js",
+    "main.js.map": "/SkySphereJs/static/js/main.47b2e73e.chunk.js.map",
     "runtime-main.js": "/SkySphereJs/static/js/runtime-main.2423bb56.js",
     "runtime-main.js.map": "/SkySphereJs/static/js/runtime-main.2423bb56.js.map",
     "static/js/2.b982e809.chunk.js": "/SkySphereJs/static/js/2.b982e809.chunk.js",
@@ -15,6 +15,6 @@
     "static/js/runtime-main.2423bb56.js",
     "static/js/2.b982e809.chunk.js",
     "static/css/main.6ceebedc.chunk.css",
-    "static/js/main.54bf1fa3.chunk.js"
+    "static/js/main.47b2e73e.chunk.js"
   ]
 }
