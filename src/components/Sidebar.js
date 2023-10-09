@@ -3,7 +3,7 @@ import './Sidebar.css';
 import { SkyContext } from '../contexts/Skycontext';
 
 function Sidebar() {
-    const { maxShownMagnitude, setMaxShownMagnitude, representation, toggleRepresentation, shownConstellations, toggleShownConstellations } = useContext(SkyContext);
+    const { orientation,maxShownMagnitude, setMaxShownMagnitude, representation, toggleRepresentation, shownConstellations, toggleShownConstellations } = useContext(SkyContext);
 
     // Utilisation d'un état local pour suivre la valeur du curseur
     const [sliderValue, setSliderValue] = useState(maxShownMagnitude);
@@ -13,7 +13,7 @@ function Sidebar() {
         setSliderValue(newMagnitude);
         setMaxShownMagnitude(newMagnitude);
     };
-   
+    const {alpha, beta,gamma}=orientation;
     return (
         <div className="sidebar">
             <h2 className="representation-title">{representation}</h2>
@@ -37,6 +37,12 @@ function Sidebar() {
                     onChange={handleSliderChange}
                 />
             </div>
+
+            {alpha !== undefined && beta !== undefined && gamma !== undefined && (
+                    <span className="orientation"> 
+                        Alpha: {alpha.toFixed(2)}, Beta: {beta.toFixed(2)}, Gamma: {gamma.toFixed(2)}
+                    </span>
+                )}         
             <p className="debug-info">Appuyez sur <strong>d</strong> pour passer en mode debug.</p>
         </div>
     );

@@ -68,24 +68,35 @@ function SkyProvider({ children }) {
         }
     }, []);
 
-    function isSafari() {
-        return /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-    }
-
     useEffect(() => {
-        if (!isSafari()) {
-            const handleOrientation = (event) => {
-                const { alpha, beta, gamma } = event;
-                setOrientation({ alpha, beta, gamma });
-            };
-
-            window.addEventListener('deviceorientation', handleOrientation);
-
-            return () => {
-                window.removeEventListener('deviceorientation', handleOrientation);
-            };
+        const button = document.createElement('button');
+        button.style.display = 'none';
+        document.body.appendChild(button);
+    
+        button.addEventListener('click', async () => {
+            if (DeviceOrientationEvent.requestPermission) {
+                const permission = await DeviceOrientationEvent.requestPermission();
+                if (permission === 'granted') {
+                    window.addEventListener('deviceorientation', handleOrientation);
+                }
+            } else {
+                window.addEventListener('deviceorientation', handleOrientation);
+            }
+        });
+    
+        button.click();
+    
+        function handleOrientation(event) {
+            const { alpha, beta, gamma } = event;
+            setOrientation({ alpha, beta, gamma });
         }
+    
+        return () => {
+            window.removeEventListener('deviceorientation', handleOrientation);
+            document.body.removeChild(button);
+        };
     }, []);
+    
 
 
     useEffect(() => {

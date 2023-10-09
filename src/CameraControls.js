@@ -5,6 +5,8 @@ import { Html } from '@react-three/drei';
 import { SkyContext } from './contexts/Skycontext';
 import { useContext } from 'react';
 import { getIntersectionWithSphere } from './utils/astroUtils';
+import Hammer from 'hammerjs';
+
 /**
  * 
  * @returns 
@@ -16,13 +18,17 @@ function CameraControls() {
   const { camera, gl, size } = useThree();
 
   useEffect(() => {
-    function handleMouseMove(event) {
-      if (!isMouseDown) return;
-
+    function handleInteraction(event) {
+      event.preventDefault();
+      
+      if (event.type !== 'touchmove' && !isMouseDown) return;
       const sensitivity = 0.005;
-
-      const deltaX = (event.offsetX - previousMousePosition.x) * sensitivity;
-      const deltaY = (event.offsetY - previousMousePosition.y) * sensitivity;
+      const { offsetX, offsetY, touches } = event;
+      const x = touches ? touches[0].clientX : offsetX;
+      const y = touches ? touches[0].clientY : offsetY;
+      
+      const deltaX = (x - previousMousePosition.x) * sensitivity;
+      const deltaY = (y - previousMousePosition.y) * sensitivity;
 
       // Vérifier quelle rotation (horizontale ou verticale) est la plus grande
       if (Math.abs(deltaX) > Math.abs(deltaY)) {
@@ -39,16 +45,55 @@ function CameraControls() {
 
       setPreviousMousePosition({ x: event.offsetX, y: event.offsetY });
     }
-
-
     const canvas = gl.domElement;
-    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mousemove', handleInteraction);
+    canvas.addEventListener('touchmove', handleInteraction);
+    canvas.addEventListener('mousedown', (event) =>{
+      if (event.button === 0) {
+        setIsMouseDown(true);
+        setPreviousMousePosition({ x: event.offsetX, y: event.offsetY });
+      }
+    });
+    canvas.addEventListener('touchstart', () => setIsMouseDown(true));
+    canvas.addEventListener('mouseup', () => setIsMouseDown(false));
+    canvas.addEventListener('touchend', () => setIsMouseDown(false));
 
     return () => {
-      canvas.removeEventListener('mousemove', handleMouseMove);
+      canvas.removeEventListener('mousemove', handleInteraction);
+      canvas.removeEventListener('touchmove', handleInteraction);
+      canvas.removeEventListener('mousedown', (event) =>{
+        if (event.button === 0) {
+          setIsMouseDown(true);
+          setPreviousMousePosition({ x: event.offsetX, y: event.offsetY });
+        }
+      });
+      canvas.removeEventListener('touchstart', () => setIsMouseDown(true));
+      canvas.removeEventListener('mouseup', () => setIsMouseDown(false));
+      canvas.removeEventListener('touchend', () => setIsMouseDown(false));
     };
   }, [gl.domElement, camera, previousMousePosition, isMouseDown]);
 
+  useEffect(() => {
+   console.log("Mouse down="+isMouseDown);
+}, [isMouseDown]);
+
+  useEffect(() => {
+    const hammer = new Hammer(gl.domElement);
+    hammer.get('pinch').set({ enable: true });
+
+    hammer.on('pinch', (event) => {
+        const zoomChange = event.scale - 1;
+        camera.zoom -= zoomChange * 0.1;  // Ajustez la valeur 0.1 selon la sensibilité souhaitée
+        camera.zoom = THREE.MathUtils.clamp(camera.zoom, 1, 10);
+        camera.updateProjectionMatrix();
+    });
+
+    return () => {
+        hammer.off('pinch');
+    };
+}, [gl.domElement, camera]);
+
+  
   useEffect(() => {
     function handleWheel(event) {
       const zoomStep = 0.25;
@@ -121,28 +166,6 @@ function CameraControls() {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [camera]);
-
-  useEffect(() => {
-    function handleMouseDown(event) {
-      if (event.button === 0) {
-        setIsMouseDown(true);
-        setPreviousMousePosition({ x: event.offsetX, y: event.offsetY });
-      }
-    }
-
-    function handleMouseUp() {
-      setIsMouseDown(false);
-    }
-
-    const canvas = gl.domElement;
-    canvas.addEventListener('mousedown', handleMouseDown);
-    canvas.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      canvas.removeEventListener('mousedown', handleMouseDown);
-      canvas.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [gl.domElement]);
 
   useEffect(() => {
     camera.position.set(0, 0, 0);
