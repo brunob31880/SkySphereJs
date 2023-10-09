@@ -43,7 +43,7 @@ function CameraControls() {
         camera.quaternion.multiply(verticalRotation);
       }
 
-      setPreviousMousePosition({ x: event.offsetX, y: event.offsetY });
+      setPreviousMousePosition({x,y });
     }
     const canvas = gl.domElement;
     canvas.addEventListener('mousemove', handleInteraction);
@@ -54,7 +54,10 @@ function CameraControls() {
         setPreviousMousePosition({ x: event.offsetX, y: event.offsetY });
       }
     });
-    canvas.addEventListener('touchstart', () => setIsMouseDown(true));
+    canvas.addEventListener('touchstart', (event) => {
+      setIsMouseDown(true);
+      setPreviousMousePosition({ x: event.touches[0].clientX, y: event.touches[0].clientY });
+    });
     canvas.addEventListener('mouseup', () => setIsMouseDown(false));
     canvas.addEventListener('touchend', () => setIsMouseDown(false));
 
@@ -67,7 +70,10 @@ function CameraControls() {
           setPreviousMousePosition({ x: event.offsetX, y: event.offsetY });
         }
       });
-      canvas.removeEventListener('touchstart', () => setIsMouseDown(true));
+      canvas.removeEventListener('touchstart', (event) => {
+        setIsMouseDown(true);
+        setPreviousMousePosition({ x: event.touches[0].clientX, y: event.touches[0].clientY });
+      });
       canvas.removeEventListener('mouseup', () => setIsMouseDown(false));
       canvas.removeEventListener('touchend', () => setIsMouseDown(false));
     };
